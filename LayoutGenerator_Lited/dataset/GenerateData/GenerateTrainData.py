@@ -516,7 +516,8 @@ def random_room_generate(random_point, direction, contour_coord):
         print("error happen! please check the intersection box point")
     line = LineString([intersection_box_point[0], intersection_box_point[-1], intersection_box_point[1]])
     contour_polygon = Polygon(contour_coord)
-    print(type(contour_polygon))
+    print(contour_polygon.shape)
+    
     contour_collection = list(split(contour_polygon, line))
     if len(contour_collection) > 1:
         second_contour_random_point = np.array(contour_collection[0].exterior.coords).astype(np.int32)
