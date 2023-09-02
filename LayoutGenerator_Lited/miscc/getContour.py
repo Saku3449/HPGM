@@ -501,7 +501,7 @@ class ConversionLayout(object):
         contour_polygon = Polygon(contour_coord)
         tmp = split(contour_polygon, line)
         contour_collection = []
-        for geometry in tmp:
+        for geometry in tmp.geoms:
             contour_collection.append(geometry)
         if len(contour_collection) > 1:
             second_contour_random_point = np.array(contour_collection[0].exterior.coords).astype(np.int32)
