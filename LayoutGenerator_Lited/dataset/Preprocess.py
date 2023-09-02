@@ -300,8 +300,8 @@ if __name__ == "__main__":
         saved_layers_data, saved_pairs_data, saved_contours, saved_indicator_values = [], [], [], []
         layers_data_path = os.path.join(data_dir, "EvaluatorData/20_pair_train_data/layers_pair_points_%d.npy" % i)
         contour_data_path = os.path.join(data_dir, "EvaluatorData/20_pair_train_data/layers_hull_points_%d.npy" % i)
-        layers_data = np.load(layers_data_path, encoding = 'latin1')
-        contour = np.load(contour_data_path, encoding = 'latin1')
+        layers_data = np.load(layers_data_path, encoding = 'latin1', allow_pickle=True)
+        contour = np.load(contour_data_path, encoding = 'latin1', allow_pickle=True)
         # 1. find the layer data pairs
         init_contour, rooms_contour = np.array(list(contour[0][0])), contour[:, 2]
         saved_contours.append(init_contour)
@@ -331,8 +331,8 @@ if __name__ == "__main__":
         # 2.compare the random generate with the gt
         # gt_point_data_path = os.path.join(data_dir, "GroundLayer/layout_gt_points/layers_gt_points_%d.npy" % i)
         # gt_hull_data_path = os.path.join(data_dir, "GroundLayer/layout_gt_points/layers_gt_hulls_%d.npy" % i)
-        # gt_point = np.load(gt_point_data_path)
-        # gt_hull = np.load(gt_hull_data_path)
+        # gt_point = np.load(gt_point_data_path, allow_pickle=True)
+        # gt_hull = np.load(gt_hull_data_path, allow_pickle=True)
         # num = 0
         # for l in range(len(layers_data)):
         #     if indicator.calculate_score(init_contour, gt_hull, rooms_contour[l], constraint_rules):

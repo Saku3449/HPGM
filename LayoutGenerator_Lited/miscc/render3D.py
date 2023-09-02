@@ -265,20 +265,20 @@ if __name__ == "__main__":
         # /***load the layout coord and type***/
         abosulte_path = "/Users/ball/Public/Code/Project/Layout/Layout_bbox_gcn/multiLayerLayout/data"
         # data_hulls_path = os.path.join(abosulte_path, "{}/layout_score_2.2.npy".format(data_dir))
-        # point_3d_hulls = np.load(data_hulls_path)
+        # point_3d_hulls = np.load(data_hulls_path, allow_pickle=True)
         num = 48
         init_hull_path = os.path.join(abosulte_path, "{}/layout_init_hulls_{}.npy".format(data_dir, num))
         # /***for cover experiment******/
         first_hull_path = os.path.join(abosulte_path, "{}/layout_gt_hulls_{}.npy".format(data_dir, num))
         # second_hull_path = os.path.join(abosulte_path, "{}/random_cover_second.npy".format(data_dir))
         # third_hull_path = os.path.join(abosulte_path, "{}/cover_third_layout.npy".format(data_dir))
-        first_hull = np.load(first_hull_path)
-        # second_hull = np.load(second_hull_path)
-        # third_hull = np.load(third_hull_path)
+        first_hull = np.load(first_hull_path, allow_pickle=True)
+        # second_hull = np.load(second_hull_path, allow_pickle=True)
+        # third_hull = np.load(third_hull_path, allow_pickle=True)
         # /*****for ablation experiment******/
         w_all_hull_path = os.path.join(abosulte_path, "{}/layout_score_hulls_{}.npy".format(data_dir, num))
-        w_all_hull = np.load(w_all_hull_path)
-        init_hull = np.load(init_hull_path)
+        w_all_hull = np.load(w_all_hull_path, allow_pickle=True)
+        init_hull = np.load(init_hull_path, allow_pickle=True)
         # return first_hull, second_hull, init_hull
         return first_hull, w_all_hull, init_hull
     data_dir = "supp_visual/visual_4"
