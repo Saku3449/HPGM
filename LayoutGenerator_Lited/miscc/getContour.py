@@ -499,7 +499,7 @@ class ConversionLayout(object):
         #     print("error happen! please check the intersection box point")
         line = LineString([intersection_box_point[0], intersection_box_point[-1], intersection_box_point[1]])
         contour_polygon = Polygon(contour_coord)
-        contour_collection = list(contour_polygon.intersection(line))
+        contour_collection = contour_polygon.intersection(line)
         if len(contour_collection) > 1:
             second_contour_random_point = np.array(contour_collection[0].exterior.coords).astype(np.int32)
             first_contour_random_point = np.array(contour_collection[1].exterior.coords).astype(np.int32)
