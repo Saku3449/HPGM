@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "hpgm"
+version = "0.1.0"
+description = ""
+authors = ["Saku3449 <saku.studypg@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.7.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
