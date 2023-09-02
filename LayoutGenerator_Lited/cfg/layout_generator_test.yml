@@ -25,7 +25,7 @@ EVALUATOR:
 
 EVAL:
   TEST_INDEX: 2
-  MODEL_EVALUATOR: "/Users/ower/Documents/Arklet/lab/HPGM/LayoutGenerator_Lited/output_dir/EVALUATOR_layout_Model/Model/evaluator_best.pth"
-  MODEL_GENERATOR: "/Users/ower/Documents/Arklet/lab/HPGM/LayoutGenerator_Lited/output_dir/GENERATOR_layout_Model/Model/generator_best.pth"
-  OUTPUT_DIR: "/Users/ower/Documents/Arklet/lab/HPGM/LayoutGenerator_Lited/output_dir/GENERATOR_layout_Model"
+  MODEL_EVALUATOR: "/content/drive/MyDrive//HPGM/LayoutGenerator_Lited/output_dir/EVALUATOR_layout_Model/Model/evaluator_best.pth"
+  MODEL_GENERATOR: "/content/drive/MyDrive/HPGM/LayoutGenerator_Lited/output_dir/GENERATOR_layout_Model/Model/generator_best.pth"
+  OUTPUT_DIR: "/content/drive/MyDrive/HPGM/LayoutGenerator_Lited/output_dir/GENERATOR_layout_Model"
   EVAL_METRIC: 0
