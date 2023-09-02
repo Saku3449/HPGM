@@ -642,7 +642,7 @@ if __name__ == '__main__':
     # id_path = os.path.join("/home/zhoujiaqiu/Code/GAN/Layout_bbox_gcn/multiLayerLayout/multiLayer_data", "test_id.txt")
     # id = np.loadtxt(id_path)
     start_time = time.time()
-    absolute_path = "/home/datasets/MultiLayerDataset"
+    absolute_path = "/content/drive/MyDrive/HPGM/MultiLayerDataset"
     pair_nums = 50
     for index in range(1, 401):  # 1, 401
         # if index not in id:
