@@ -266,7 +266,7 @@ class LayoutTrainer(object):
             #      Saving      #
             # ================ #
             training_epoch.append(epoch)
-            training_error.append((total_err/3.0).cpu())
+            training_error.append(total_err/3.0)
             testing_epoch.append(epoch)
             testing_error.append(test_total_err.cpu())
             # plot
