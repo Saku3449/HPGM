@@ -14,6 +14,7 @@ plt.switch_backend('agg')
 
 
 def visualization(point_hulls, pred_score, save_pic_path, contour_type=None, data_type="numpy", draw_text= False):
+    print("Let's visualization!")
     """
     function: visualize the point hull to see the point
     """
