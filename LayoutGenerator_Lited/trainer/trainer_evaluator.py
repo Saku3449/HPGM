@@ -266,13 +266,13 @@ class LayoutTrainer(object):
             #      Saving      #
             # ================ #
             training_epoch.append(epoch)
-            training_error.append(total_err/3.0)
+            training_error.append((total_err/3.0).cpu())
             testing_epoch.append(epoch)
-            testing_error.append(test_total_err)
+            testing_error.append(test_total_err.cpu())
             # plot
             plt.figure(0)
-            plt.plot(training_epoch, training_error.cpu(), color="r", linestyle="-", linewidth=1, label="training")
-            plt.plot(testing_epoch, testing_error.cpu(), color="b", linestyle="-", linewidth=1, label="testing")
+            plt.plot(training_epoch, training_error, color="r", linestyle="-", linewidth=1, label="training")
+            plt.plot(testing_epoch, testing_error, color="b", linestyle="-", linewidth=1, label="testing")
             plt.xlabel("epoch")
             plt.ylabel("loss")
             plt.legend(loc='best')
