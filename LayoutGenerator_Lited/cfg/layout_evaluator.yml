@@ -1,6 +1,6 @@
 DATASET_NAME: "layout"
 CONFIG_NAME: "MultiLayer"
-DATA_DIR: "/content/drive/MyDrive/HPGM/MultiLayerDataset"
+DATA_DIR: "/Users/ower/Documents/Arklet/lab/HPGM/MultiLayerDataset"
 GPU: "0"
 DATASET: "eval"
 

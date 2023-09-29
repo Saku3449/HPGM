@@ -22,7 +22,6 @@ def parse_args():
                         help='optional config file',
                         default='cfg/layout_generator.yml', type=str)
     parser.add_argument('--manualSeed', type=int, help='manual seed')
-    parser.add_argument('--gpu', dest='gpu', type=str, help='set gpu id')
     control_args = parser.parse_args()
     return control_args
 
@@ -30,8 +29,10 @@ def parse_args():
 def load_dataset():
     from dataset.datasets import LayoutDataset
     if cfg.TRAIN.FLAG:
-        dataset_train = LayoutDataset(cfg.DATA_DIR, cfg.INDICATOR_DIR, cfg.DATASET, train_set=True)
-        dataset_test = LayoutDataset(cfg.DATA_DIR, cfg.INDICATOR_DIR, cfg.DATASET, train_set=False)
+        dataset_train = LayoutDataset(
+            cfg.DATA_DIR, cfg.INDICATOR_DIR, cfg.DATASET, train_set=True)
+        dataset_test = LayoutDataset(
+            cfg.DATA_DIR, cfg.INDICATOR_DIR, cfg.DATASET, train_set=False)
         assert dataset_train
         assert dataset_test
         loader_train = torch.utils.data.DataLoader(
@@ -42,7 +43,8 @@ def load_dataset():
             drop_last=True, shuffle=False, collate_fn=dataset_test.collate_fn)
         return loader_train, loader_test
     else:
-        dataset_test = LayoutDataset(cfg.DATA_DIR, cfg.INDICATOR_DIR, cfg.DATASET, train_set=False)
+        dataset_test = LayoutDataset(
+            cfg.DATA_DIR, cfg.INDICATOR_DIR, cfg.DATASET, train_set=False)
         assert dataset_test
         dataloader = torch.utils.data.DataLoader(
             dataset_test, batch_size=cfg.TRAIN.BATCH_SIZE,
@@ -55,8 +57,6 @@ if __name__ == "__main__":
     args = parse_args()
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
-    cfg.GPU = args.gpu
-    os.environ["CUDA_VISIBLE_DEVICES"] = cfg.GPU
     print('Using config:')
     pprint.pprint(cfg)
     # set manual seed
@@ -92,7 +92,8 @@ if __name__ == "__main__":
     else:
         from trainer.trainer_evaluator import LayoutTrainer as trainer
     if cfg.TRAIN.FLAG:
-        our_trainer = trainer(output_dir, dataloader_train, dataloader_test, logger)
+        our_trainer = trainer(output_dir, dataloader_train,
+                              dataloader_test, logger)
     else:
         our_trainer = trainer(output_dir, None, dataloader_test, logger)
     start_t = time.time()

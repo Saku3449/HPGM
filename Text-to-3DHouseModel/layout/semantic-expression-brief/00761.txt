@@ -1,0 +1,9 @@
+[Rooms]
+washroom1
+livingroom1
+kitchen1
+
+[Links]
+livingroom1, kitchen1
+livingroom1, washroom1
+kitchen1, washroom1

@@ -1,0 +1,10 @@
+[Rooms]
+washroom1
+study1
+bedroom1
+balcony1
+
+[Links]
+bedroom1, study1
+bedroom1, balcony1
+bedroom1, washroom1

@@ -1,6 +1,6 @@
 DATASET_NAME: "layout"
 CONFIG_NAME: "MultiLayer"
-DATA_DIR: "/content/drive/MyDrive/HPGM/MultiLayerDataset"
+DATA_DIR: "/Users/ower/Documents/Arklet/lab/HPGM/HPGM/MultiLayerDataset"
 GPU: "0"
 DATASET: "eval"
 
@@ -24,5 +24,5 @@ EVALUATOR:
 
 EVAL:
   TEST_INDEX: 1
-  OUTPUT_DIR: "/content/drive/MyDrive/HPGM/LayoutGenerator_Lited/output_dir/EVALUATOR_layout_Model"
+  OUTPUT_DIR: "/Users/ower/Documents/Arklet/lab/HPGM/LayoutGenerator_Lited/output_dir/EVALUATOR_layout_Model"
   MODEL_EVALUATOR: "Model/evaluator_best.pth"

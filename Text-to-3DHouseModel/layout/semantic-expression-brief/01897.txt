@@ -1,0 +1,26 @@
+[Rooms]
+washroom1
+washroom2
+livingroom1
+closet1
+bedroom1
+bedroom2
+bedroom3
+kitchen1
+balcony1
+balcony2
+
+[Links]
+livingroom1, bedroom1
+livingroom1, bedroom2
+livingroom1, bedroom3
+livingroom1, balcony2
+livingroom1, kitchen1
+livingroom1, washroom2
+bedroom1, balcony1
+bedroom1, kitchen1
+bedroom1, closet1
+bedroom2, bedroom3
+bedroom2, balcony2
+bedroom3, closet1
+washroom1, washroom2

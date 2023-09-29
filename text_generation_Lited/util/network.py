@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from config import bfirstNoise, opt
 from torchvision import models
-from prepareTemplates import getTemplateMixImage
+from util.prepareTemplates import getTemplateMixImage
 import torch.nn.functional as F
 
 norma = nn.BatchNorm2d

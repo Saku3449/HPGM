@@ -1,0 +1,8 @@
+[Rooms]
+livingroom1
+corridor1
+kitchen1
+
+[Links]
+livingroom1, kitchen1
+livingroom1, corridor1

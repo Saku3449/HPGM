@@ -1,0 +1,17 @@
+[Rooms]
+washroom1
+livingroom1
+closet1
+study1
+bedroom1
+kitchen1
+
+[Links]
+livingroom1, bedroom1
+livingroom1, kitchen1
+livingroom1, study1
+livingroom1, closet1
+bedroom1, washroom1
+bedroom1, closet1
+kitchen1, study1
+washroom1, closet1

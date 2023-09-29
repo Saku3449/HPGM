@@ -27,11 +27,14 @@ def define_optimizers(model, lr, weight_decay):
     # optimizer_model = optim.SGD(model.parameters(), lr=lr, weight_decay=weight_decay)
     return optimizer_model
 
+
 def save_model(model, epoch, model_dir, model_name, best=False):
     if best:
-        torch.save(model.state_dict(), '%s/%s_best.pth' % (model_dir, model_name))
+        torch.save(model.state_dict(), '%s/%s_best.pth' %
+                   (model_dir, model_name))
     else:
-        torch.save(model.state_dict(), '%s/%s_%d.pth' % (model_dir, model_name, epoch))
+        torch.save(model.state_dict(), '%s/%s_%d.pth' %
+                   (model_dir, model_name, epoch))
 
 
 class evaluateMetric(object):
@@ -119,7 +122,7 @@ class evaluateMetric(object):
         """
         function:calculate the score_area of the room
         """
-        k_min = 1. / (2* room_num)
+        k_min = 1. / (2 * room_num)
         area = float(self.calculate_surface_area(room_hull))
         total_area = float(self.calculate_surface_area(init_contour))
         k = area / total_area
@@ -138,8 +141,10 @@ class evaluateMetric(object):
         line_set = self.get_line_from_room(room_hull)
         for m in range(len(line_set)):
             if not self.line_is_on_contour(line_set[m], np.array(contour)):
-                score_cost = self.calculate_distance(line_set[m][0], line_set[m][1])
+                score_cost = self.calculate_distance(
+                    line_set[m][0], line_set[m][1])
         return score_cost
+
 
 class LayGenerator(object):
     def __init__(self, output_dir, dataloader_train, dataloader_test, logger=None):
@@ -177,7 +182,8 @@ class LayGenerator(object):
         score_hiddern_dim = cfg.TRAIN.SCORE_HIDDERN_DIM
         gen_room_hiddern_dim = cfg.TRAIN.ROOM_GEN_HIDDERN_DIM
         init_hidden_dim = [3, 1]
-        layout_evaluator = LayoutEvaluator(4, 8, score_hiddern_dim, bidirectional=False)
+        layout_evaluator = LayoutEvaluator(
+            4, 8, score_hiddern_dim, bidirectional=False)
         layout_generator = LayoutGenerator(room_dim, room_hiddern_dim,
                                            gen_room_hiddern_dim, init_hidden_dim, max_len, self.logger, bidirectional=False)
         layout_generator.apply(weight_init)
@@ -190,17 +196,15 @@ class LayGenerator(object):
         self.logger.info("Layout_evaluator: {}".format(layout_evaluator))
         self.logger.info("Layout_generator: {}".format(layout_generator))
         if cfg.TRAIN.EVALUATOR != '':
-            layout_evaluator.load_state_dict(torch.load(cfg.TRAIN.EVALUATOR))
+            layout_evaluator.load_state_dict(torch.load(
+                cfg.TRAIN.EVALUATOR, map_location=torch.device('cpu')))
         if cfg.TRAIN.GENERATOR_MODEL != '':
-            layout_generator.load_state_dict(torch.load(cfg.TRAIN.GENERATOR_MODEL))
+            layout_generator.load_state_dict(
+                torch.load(cfg.TRAIN.GENERATOR_MODEL))
         layout_optimizer = define_optimizers(layout_generator, cfg.GENERATOR.LR,
                                              cfg.GENERATOR.WEIGHT_DECAY)
-        layout_generator.cuda()
-        layout_evaluator.cuda()
         criterion = torch.nn.MSELoss()
         KL_crierion = torch.nn.KLDivLoss()
-        criterion.cuda()
-        KL_crierion.cuda()
         start_epoch = 0
         training_epoch, testing_epoch, training_error, testing_error = [], [], [], []
         for epoch in range(start_epoch, self.max_epoch):
@@ -208,34 +212,40 @@ class LayGenerator(object):
             layout_evaluator.train()
             start_t = time.time()
             sample_num = cfg.TRAIN.SAMPLE_NUM
-            label = torch.FloatTensor([[1.0]]).repeat(sample_num, 1).cuda()
+            label = torch.FloatTensor([[1.0]]).repeat(sample_num, 1)
             err_preds, restart, total_err, gt_room_std = 0, 1, 0, 0
             test_err_preds, test_restart, test_total_err = 0, 1, 0
             for step, data in enumerate(self.dataloader_train, 0):
                 room_data, init_contour, gt_room_data, _ = data
-                gt_layout_room = gt_room_data[0].transpose(0, 1).cuda()
-                # room_data: [1, contour_type(step), sample_num, room_num, 3(point+direction)]
-                # init_contour: [1, contour_type(step), sample_num, contour, 3]
-                origin_layout_room = room_data[0].transpose(0, 1).cuda()
+                gt_layout_room = gt_room_data[0].transpose(0, 1)
+                origin_layout_room = room_data[0].transpose(0, 1)
                 room_num = origin_layout_room.shape[0]
-                layout_init_contour = init_contour[0].transpose(0, 1).cuda()
-                origin_layout = torch.cat((layout_init_contour, origin_layout_room),dim=0)
+                layout_init_contour = init_contour[0].transpose(0, 1)
+                origin_layout = torch.cat(
+                    (layout_init_contour, origin_layout_room), dim=0)
                 refine_layout = layout_generator(origin_layout)
                 refine_layout_room = refine_layout[-room_num:, :, :]
-                refine_layout = torch.cat((layout_init_contour, refine_layout_room), dim=0).cuda()
+                refine_layout = torch.cat(
+                    (layout_init_contour, refine_layout_room), dim=0)
                 pred_score = layout_evaluator.forward(refine_layout)
                 # get the refine room std and the origin room std
-                room_std = torch.mean(torch.std(refine_layout_room, dim=0, unbiased=False), dim=1)
-                room_std = room_std.reshape([len(room_std), 1]).cuda()
+                room_std = torch.mean(
+                    torch.std(refine_layout_room, dim=0, unbiased=False), dim=1)
+                room_std = room_std.reshape([len(room_std), 1])
                 pred_score = pred_score * (room_std > 0.05)
                 if step == 299:
                     print("Test the score!\n")
-                    gt_layout = torch.cat((layout_init_contour, gt_layout_room), dim=0).cuda()
+                    gt_layout = torch.cat(
+                        (layout_init_contour, gt_layout_room), dim=0)
                     gt_score = layout_evaluator.forward(gt_layout)
-                    self.logger.info("In step 299, Pred_score1: {}, origin_score1: {}".format(pred_score[0], gt_score[0]))
-                    self.logger.info("origin_layout0: {}".format(origin_layout_room[:, 0, :]))
-                    self.logger.info("refine_layout0: {}".format(refine_layout_room[:, 0, :]))
-                err_pred = criterion(pred_score, label) +  cfg.TRAIN.TAU * criterion(origin_layout_room, refine_layout_room)
+                    self.logger.info("In step 299, Pred_score1: {}, origin_score1: {}".format(
+                        pred_score[0], gt_score[0]))
+                    self.logger.info("origin_layout0: {}".format(
+                        origin_layout_room[:, 0, :]))
+                    self.logger.info("refine_layout0: {}".format(
+                        refine_layout_room[:, 0, :]))
+                err_pred = criterion(pred_score, label) + cfg.TRAIN.TAU * \
+                    criterion(origin_layout_room, refine_layout_room)
                 if step == 0 or restart:
                     err_preds = err_pred
                     restart = 0
@@ -253,9 +263,10 @@ class LayGenerator(object):
                     restart = 1
             print('comparing total loss...')
             print('\033[1;31m current_epoch[{}] current_loss[{}] \033[0m \033[1;34m best_epoch[{}] best_loss[{}] \033[0m'.format(
-                    epoch, total_err, self.best_epoch, self.best_loss))
+                epoch, total_err, self.best_epoch, self.best_loss))
             if epoch % 10 == 0:
-                save_model(model=layout_generator, epoch=epoch, model_dir=self.model_dir, model_name='generator', best=False)
+                save_model(model=layout_generator, epoch=epoch,
+                           model_dir=self.model_dir, model_name='generator', best=False)
             # ================ #
             #      Testing     #
             # ================ #
@@ -265,19 +276,23 @@ class LayGenerator(object):
                 room_data, init_contour, _, _ = data
                 # room_data: [1, contour_type(step), sample_num, room_num, 3(point+direction)]
                 # init_contour: [1, contour_type(step), sample_num, contour, 3]
-                origin_layout_room = room_data[0].transpose(0, 1).cuda()
+                origin_layout_room = room_data[0].transpose(0, 1)
                 room_num = origin_layout_room.shape[0]
-                layout_init_contour = init_contour[0].transpose(0, 1).cuda()
-                origin_layout = torch.cat((layout_init_contour, origin_layout_room),dim=0)
+                layout_init_contour = init_contour[0].transpose(0, 1)
+                origin_layout = torch.cat(
+                    (layout_init_contour, origin_layout_room), dim=0)
                 refine_layout = layout_generator(origin_layout)
                 refine_layout_room = refine_layout[-room_num:, :, :]
-                refine_layout = torch.cat((layout_init_contour, refine_layout_room), dim=0).cuda()
+                refine_layout = torch.cat(
+                    (layout_init_contour, refine_layout_room), dim=0)
                 pred_score = layout_evaluator.forward(refine_layout)
                 # get the refine room std and the origin room std
-                room_std = torch.mean(torch.std(refine_layout_room, dim=0, unbiased=False), dim=1)
-                room_std = room_std.reshape([len(room_std), 1]).cuda()
+                room_std = torch.mean(
+                    torch.std(refine_layout_room, dim=0, unbiased=False), dim=1)
+                room_std = room_std.reshape([len(room_std), 1])
                 pred_score = pred_score * (room_std > 0.05)
-                err_test_pred = criterion(pred_score, label) + cfg.TRAIN.TAU * criterion(origin_layout_room, refine_layout_room)
+                err_test_pred = criterion(
+                    pred_score, label) + cfg.TRAIN.TAU * criterion(origin_layout_room, refine_layout_room)
                 if step == 0 or test_restart:
                     test_err_preds = err_test_pred.item()
                     test_restart = 0
@@ -306,8 +321,10 @@ class LayGenerator(object):
             testing_error.append(test_total_err*3)
             # plot
             plt.figure(0)
-            plt.plot(training_epoch, training_error, color="r", linestyle="-", linewidth=1, label="training")
-            plt.plot(testing_epoch, testing_error, color="b", linestyle="-", linewidth=1, label="testing")
+            plt.plot(training_epoch, training_error, color="r",
+                     linestyle="-", linewidth=1, label="training")
+            plt.plot(testing_epoch, testing_error, color="b",
+                     linestyle="-", linewidth=1, label="testing")
             plt.xlabel("epoch")
             plt.ylabel("loss")
             plt.legend(loc='best')
@@ -320,7 +337,8 @@ class LayGenerator(object):
                 f.write('{},{}\n'.format(epoch, testing_error[-1]))
             # print
             end_t = time.time()
-            self.logger.info('[%d/%d] Loss_total: %.5f Test_loss: %.5f Time: %.2fs' % (epoch, self.max_epoch, total_err, test_total_err, end_t - start_t))
+            self.logger.info('[%d/%d] Loss_total: %.5f Test_loss: %.5f Time: %.2fs' %
+                             (epoch, self.max_epoch, total_err, test_total_err, end_t - start_t))
 
     def evaluate(self):
         eval_layout_evaluator, eval_layout_generator = self.define_models()
@@ -328,39 +346,44 @@ class LayGenerator(object):
             print("Please load the eval model path!")
             return 0
         else:
-            eval_layout_evaluator.load_state_dict(torch.load(self.eval_model_path))
-            eval_layout_generator.load_state_dict(torch.load(self.gen_model_path))
-        eval_layout_evaluator.cuda()
-        eval_layout_generator.cuda()
+            eval_layout_evaluator.load_state_dict(torch.load(
+                self.eval_model_path, map_location=torch.device('cpu')))
+            eval_layout_generator.load_state_dict(torch.load(
+                self.gen_model_path, map_location=torch.device('cpu')))
         eval_layout_evaluator.eval()
         eval_layout_generator.eval()
         layout_convertor = ConversionLayout()
         score_ratio_sum, score_area_sum, score_cost_sum, add_nums, loss_step, \
-        refine_sum_hulls, init_sum_contour, test_num, random_seed = 0., 0., 0., 0, [], [], [], 1000, 100
+            refine_sum_hulls, init_sum_contour, test_num, random_seed = 0., 0., 0., 0, [], [], [], 1000, 100
         random.seed(random_seed)
-        eval_metric = cfg.EVAL.EVAL_METRIC # 1 if evaluate metric else generate 3d building visualization
+        # 1 if evaluate metric else generate 3d building visualization
+        eval_metric = cfg.EVAL.EVAL_METRIC
         for step, data in enumerate(self.dataloader_test, 0):
             room_data, init_contour, _, gt_room_data = data
-            origin_layout_room = room_data[0].transpose(0, 1).cuda()
+            origin_layout_room = room_data[0].transpose(0, 1)
             room_num = origin_layout_room.shape[0]
-            layout_init_contour = init_contour[0].transpose(0, 1).cuda()
-            origin_layout = torch.cat((layout_init_contour, origin_layout_room), dim=0).cuda()
+            layout_init_contour = init_contour[0].transpose(0, 1)
+            origin_layout = torch.cat(
+                (layout_init_contour, origin_layout_room), dim=0)
             refine_layout = eval_layout_generator(origin_layout)
             refine_layout_room = refine_layout[-room_num:, :, :]
-            refine_layout = torch.cat((layout_init_contour, refine_layout_room), dim=0).cuda()
+            refine_layout = torch.cat(
+                (layout_init_contour, refine_layout_room), dim=0)
             pred_score1 = eval_layout_evaluator.forward(refine_layout)
             pred_score2 = eval_layout_evaluator.forward(origin_layout)
             # / ********** change the range of the score ************/
             pred_score1 = tran_score_range(pred_score1)
             pred_score2 = tran_score_range(pred_score2)
             # / ********** according to the pred_score to sort the refine layout room **********/
-            sorted_index = torch.argsort(pred_score1.squeeze(), descending=True)
+            sorted_index = torch.argsort(
+                pred_score1.squeeze(), descending=True)
             # sorted_index = torch.argsort(pred_score2.squeeze(), descending=True)
             visual_refine_layout_rooms, refine_hulls = [], []
             for i in range(len(sorted_index)):
-                visual_refine_layout_rooms.append(refine_layout_room[:, sorted_index[i], :])
+                visual_refine_layout_rooms.append(
+                    refine_layout_room[:, sorted_index[i], :])
             # /*************** data process **************/
-            direction_dict = {0:[0, 0], 1:[0, 1], 2:[1, 0], 3:[1, 1]}
+            direction_dict = {0: [0, 0], 1: [0, 1], 2: [1, 0], 3: [1, 1]}
             visual_origin_layout_room = origin_layout_room[:, 0, :]
             for i in range(len(visual_origin_layout_room)):
                 for j in range(len(direction_dict)):
@@ -375,19 +398,23 @@ class LayGenerator(object):
             gt_hull = gt_room_data[0]
             print("step:", step)
             for k in range(len(visual_refine_layout_rooms)):
-                refine_hull = layout_convertor.tran_layout_hull(layout_init_contour[:,0,:2].cpu(), visual_refine_layout_rooms[k][:, :3].cpu())
+                refine_hull = layout_convertor.tran_layout_hull(
+                    layout_init_contour[:, 0, :2].cpu(), visual_refine_layout_rooms[k][:, :3].cpu())
                 if refine_hull != -1:
                     refine_hulls.append(refine_hull)
                     refine_sum_hulls.append(refine_hull)
-                    init_sum_contour.append(np.array(init_contour[0][0][:, :2]*255, dtype=np.int))  
+                    init_sum_contour.append(
+                        np.array(init_contour[0][0][:, :2]*255, dtype=np.int32))
                     num = num + 1
                 if not eval_metric:
                     if num == max_num:
                         break
             if not eval_metric:
                 from miscc.render3D import render_3d_contour
-                save_mesh_path = os.path.join(self.eval_dir, "layout_{}.ply".format(step))
-                render_3d_contour(layout_init_contour[:, 0, :2].cpu(), gt_hull, refine_hulls, save_mesh_path)
+                save_mesh_path = os.path.join(
+                    self.eval_dir, "layout_{}.ply".format(step))
+                render_3d_contour(layout_init_contour[:, 0, :2].cpu(
+                ), gt_hull, refine_hulls, save_mesh_path)
         # /***************** for evaluation metrics *****************/
         if eval_metric:
             evaluation = evaluateMetric()
@@ -399,9 +426,12 @@ class LayGenerator(object):
                 rooms_hulls, init_hull, score_ratio, score_area, score_cost \
                     = refine_sum_hulls[num], init_sum_contour[num], 0., 0., 0.
                 for i in range(len(rooms_hulls)):
-                    score_room_ratio = evaluation.calculate_score_ratio(rooms_hulls[i])
-                    score_room_area = evaluation.calculate_score_area(len(rooms_hulls), rooms_hulls[i], init_hull)
-                    score_room_cost = evaluation.calculate_score_cost(rooms_hulls[i], init_hull)
+                    score_room_ratio = evaluation.calculate_score_ratio(
+                        rooms_hulls[i])
+                    score_room_area = evaluation.calculate_score_area(
+                        len(rooms_hulls), rooms_hulls[i], init_hull)
+                    score_room_cost = evaluation.calculate_score_cost(
+                        rooms_hulls[i], init_hull)
                     score_ratio = score_ratio + score_room_ratio
                     score_area = score_area + score_room_area
                     score_cost = score_cost + score_room_cost
@@ -409,4 +439,5 @@ class LayGenerator(object):
                 score_area_sum = score_area_sum + score_area
                 score_cost_sum = score_cost_sum + score_cost
                 add_nums = add_nums + 1
-            print("{} layout can be evaluate! score_ratio: {}, score_area: {}, score_cost: {}".format(add_nums, score_ratio_sum/add_nums, score_area_sum/add_nums, score_cost_sum/add_nums))
+            print("{} layout can be evaluate! score_ratio: {}, score_area: {}, score_cost: {}".format(
+                add_nums, score_ratio_sum/add_nums, score_area_sum/add_nums, score_cost_sum/add_nums))
