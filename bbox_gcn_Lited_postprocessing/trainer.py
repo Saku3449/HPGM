@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import torch.backends.cudnn as cudnn
-from six.moves import range
+# from six.moves import range
 from miscc.config import cfg
 from miscc.utils import mkdir_p, bbox_iou, bbox_refiner
 from model_graph import GCN, BBOX_NET
@@ -23,17 +23,19 @@ def load_params(model, new_param):
 
 def define_optimizers(model, lr, weight_decay):
     optimizer_model = optim.Adam(model.parameters(),
-                            lr=lr, 
-                            weight_decay=weight_decay,
-                            betas=(0.5, 0.999))
+                                 lr=lr,
+                                 weight_decay=weight_decay,
+                                 betas=(0.5, 0.999))
     return optimizer_model
 
 
 def save_model(model, epoch, model_dir, model_name, best=False):
     if best:
-        torch.save(model.state_dict(), '%s/%s_best.pth' % (model_dir, model_name))
+        torch.save(model.state_dict(), '%s/%s_best.pth' %
+                   (model_dir, model_name))
     else:
-        torch.save(model.state_dict(), '%s/%s_%d.pth' % (model_dir, model_name, epoch))
+        torch.save(model.state_dict(), '%s/%s_%d.pth' %
+                   (model_dir, model_name, epoch))
 
 
 def save_img_results(imgs_tcpu, real_box, boxes_pred, count, image_dir):
@@ -49,14 +51,17 @@ def save_img_results(imgs_tcpu, real_box, boxes_pred, count, image_dir):
         real_img, real_box, '%s/count_%09d_real_bbox.png' % (image_dir, count),
         normalize=True)
     vutils.save_bbox(
-        real_img, boxes_pred, '%s/count_%09d_fake_bbox.png' % (image_dir, count),
+        real_img, boxes_pred, '%s/count_%09d_fake_bbox.png' % (
+            image_dir, count),
         normalize=True)
     # save floor plan images
     vutils.save_floor_plan(
-        real_img, real_box, '%s/count_%09d_real_floor_plan.png' % (image_dir, count),
+        real_img, real_box, '%s/count_%09d_real_floor_plan.png' % (
+            image_dir, count),
         normalize=True)
     vutils.save_floor_plan(
-        real_img, boxes_pred, '%s/count_%09d_fake_floor_plan.png' % (image_dir, count),
+        real_img, boxes_pred, '%s/count_%09d_fake_floor_plan.png' % (
+            image_dir, count),
         normalize=True)
 
 
@@ -76,31 +81,34 @@ def save_img_results_test(imgs_tcpu, real_box, boxes_pred, count, test_dir):
         normalize=True)
 
     vutils.save_bbox(
-        real_img, boxes_pred, '%s/count_%09d_fake_bbox.png' % (test_dir, count),
+        real_img, boxes_pred, '%s/count_%09d_fake_bbox.png' % (
+            test_dir, count),
         normalize=True)
 
     # save floor plan images
     vutils.save_floor_plan(
-        real_img, real_box, '%s/count_%09d_real_floor_plan.png' % (test_dir, count),
+        real_img, real_box, '%s/count_%09d_real_floor_plan.png' % (
+            test_dir, count),
         normalize=True)
 
     vutils.save_floor_plan(
-        real_img, boxes_pred, '%s/count_%09d_fake_floor_plan.png' % (test_dir, count),
+        real_img, boxes_pred, '%s/count_%09d_fake_floor_plan.png' % (
+            test_dir, count),
         normalize=True)
 
 
-def save_img_results_for_FID(imgs_tcpu, fake_imgs, save_path_real, 
-                            save_path_fake, step_test, batch_size):
+def save_img_results_for_FID(imgs_tcpu, fake_imgs, save_path_real,
+                             save_path_fake, step_test, batch_size):
     real_img = imgs_tcpu[-1]
     fake_img = fake_imgs[-1]
     # save image for FID calculation
-    vutils.save_image_for_fid(real_img, fake_img, save_path_real, 
-                            save_path_fake, step_test, batch_size,
-                            normalize=True)
+    vutils.save_image_for_fid(real_img, fake_img, save_path_real,
+                              save_path_fake, step_test, batch_size,
+                              normalize=True)
 
 
 def save_txt_results(text, count, text_dir):
-    with open('%s/count_%09d.txt'%(text_dir, count), 'a') as f:
+    with open('%s/count_%09d.txt' % (text_dir, count), 'a') as f:
         for t in text:
             f.write('{}\n'.format(t))
 
@@ -108,7 +116,7 @@ def save_txt_results(text, count, text_dir):
 def save_txt_results_bbox(boxes, count, text_dir):
     # print(boxes[0][1])
     # assert False
-    room_classes = ['livingroom', 'bedroom', 'corridor', 'kitchen', 
+    room_classes = ['livingroom', 'bedroom', 'corridor', 'kitchen',
                     'washroom', 'study', 'closet', 'storage', 'balcony']
     rooms_counter = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     temp_dir = {}
@@ -118,11 +126,11 @@ def save_txt_results_bbox(boxes, count, text_dir):
         rooms_counter[idx] += 1
         key = "%s%s" % (room_classes[idx], rooms_counter[idx])
         bounding_box = boxes[0][0][i].cpu().detach().numpy()
-        temp_dir["rooms"][key] = {"min_x": "%s"%(bounding_box[0]),
-                                "min_y": "%s"%(bounding_box[1]),
-                                "max_x": "%s"%(bounding_box[2]),
-                                "max_y": "%s"%(bounding_box[3])}
-    with open('%s/count_%09d.json'%(text_dir, count), 'w') as f:
+        temp_dir["rooms"][key] = {"min_x": "%s" % (bounding_box[0]),
+                                  "min_y": "%s" % (bounding_box[1]),
+                                  "max_x": "%s" % (bounding_box[2]),
+                                  "max_y": "%s" % (bounding_box[3])}
+    with open('%s/count_%09d.json' % (text_dir, count), 'w') as f:
         json.dump(temp_dir, f)
 
 
@@ -160,7 +168,9 @@ class LayoutTrainer(object):
         s_gpus = cfg.GPU_ID.split(',')
         self.gpus = [int(ix) for ix in s_gpus]
         self.num_gpus = len(self.gpus)
-        self.device = torch.device('cuda:{}'.format(self.gpus[0]) if self.num_gpus>0 else 'cpu')
+        # self.device = torch.device('cuda:{}'.format(
+        #     self.gpus[0]) if self.num_gpus > 0 else 'cpu')
+        self.device = torch.device('cpu')
         cudnn.benchmark = True
 
         if cfg.TRAIN.FLAG:
@@ -170,7 +180,7 @@ class LayoutTrainer(object):
         self.max_epoch = cfg.TRAIN.MAX_EPOCH
         self.snapshot_interval = cfg.TRAIN.SNAPSHOT_INTERVAL
 
-        if dataloader_train!=None:
+        if dataloader_train != None:
             self.dataloader_train = dataloader_train
             self.num_batches = len(self.dataloader_train)
         self.dataloader_test = dataset_test
@@ -184,8 +194,10 @@ class LayoutTrainer(object):
             for i in range(len(graph)):
                 # vgraph.append((graph[i][0].to(self.device), graph[i][1].to(self.device)))
                 vgraph.append(graph[i].to(self.device))
-                vbbox.append((bbox[i][0].to(self.device), bbox[i][1].to(self.device)))
-                vobjs_vector.append((objs_vector[i][0].to(self.device), objs_vector[i][1].to(self.device)))
+                vbbox.append((bbox[i][0].to(self.device),
+                             bbox[i][1].to(self.device)))
+                vobjs_vector.append((objs_vector[i][0].to(
+                    self.device), objs_vector[i][1].to(self.device)))
         return label_imgs, vgraph, vbbox, vobjs_vector, key
 
     def prepare_data_test(self, data):
@@ -198,8 +210,10 @@ class LayoutTrainer(object):
             for i in range(len(graph)):
                 # vgraph.append((graph[i][0].to(self.device), graph[i][1].to(self.device)))
                 vgraph.append(graph[i].to(self.device))
-                vbbox.append((bbox[i][0].to(self.device), bbox[i][1].to(self.device)))
-                vobjs_vector.append((objs_vector[i][0].to(self.device), objs_vector[i][1].to(self.device)))
+                vbbox.append((bbox[i][0].to(self.device),
+                             bbox[i][1].to(self.device)))
+                vobjs_vector.append((objs_vector[i][0].to(
+                    self.device), objs_vector[i][1].to(self.device)))
         return label_imgs, vgraph, vbbox, vobjs_vector, key
 
     def define_models(self):
@@ -211,7 +225,7 @@ class LayoutTrainer(object):
         input_graph_dim = objs_vector_dim
         hidden_graph_dim = 64
         output_graph_dim = objs_vector_dim
-        gcn = GCN(nfeat=input_graph_dim, 
+        gcn = GCN(nfeat=input_graph_dim,
                   nhid=hidden_graph_dim, output_dim=output_graph_dim)
         # build box_net model
         gconv_dim = objs_vector_dim
@@ -221,7 +235,6 @@ class LayoutTrainer(object):
         box_net_layers = [gconv_dim, gconv_hidden_dim, box_net_dim]
         box_net = BBOX_NET(box_net_layers, batch_norm=mlp_normalization)
         return gcn, box_net
-
 
     def train(self):
         # plot
@@ -269,20 +282,25 @@ class LayoutTrainer(object):
                 #######################################################
                 # (0) Prepare training data
                 ######################################################
-                self.imgs_tcpu, self.graph, self.real_box, self.objs_vector, self.key = self.prepare_data(data)
+                self.imgs_tcpu, self.graph, self.real_box, self.objs_vector, self.key = self.prepare_data(
+                    data)
                 #######################################################
                 # (1) Generate layout position
                 ######################################################
                 self.box_net.train()
                 # for each image
                 for i in range(len(self.real_box)):
-                    graph_objs_vector = self.gcn(self.objs_vector[i][0], self.graph[i])
-                    boxes_pred = self.box_net(self.objs_vector[i][0], graph_objs_vector)
+                    graph_objs_vector = self.gcn(
+                        self.objs_vector[i][0], self.graph[i])
+                    boxes_pred = self.box_net(
+                        self.objs_vector[i][0], graph_objs_vector)
                     # optimization
                     if i == 0:
-                        err_bbox = self.criterion_bbox(boxes_pred, self.real_box[i][0])
+                        err_bbox = self.criterion_bbox(
+                            boxes_pred, self.real_box[i][0])
                     else:
-                        err_bbox += self.criterion_bbox(boxes_pred, self.real_box[i][0])
+                        err_bbox += self.criterion_bbox(
+                            boxes_pred, self.real_box[i][0])
                 err_bbox = err_bbox / len(self.real_box)
                 err_total = cfg.TRAIN.COEFF.BBOX_LOSS * err_bbox
                 self.optimizer_gcn.zero_grad()
@@ -302,7 +320,7 @@ class LayoutTrainer(object):
                 save_model(model=self.box_net, epoch=epoch, model_dir=self.model_dir,
                            model_name='box_net', best=True)
             print('\033[1;31m current_epoch[{}] current_loss[{}] \033[0m \033[1;34m best_epoch[{}] best_loss[{}] \033[0m'.format(
-                    epoch, err_total.item(), self.best_epoch, self.best_loss))
+                epoch, err_total.item(), self.best_epoch, self.best_loss))
 
             # ================= #
             #      Valid        #
@@ -312,34 +330,46 @@ class LayoutTrainer(object):
                 self.box_net.eval()
                 boxes_pred_collection = []
                 for i in range(len(self.real_box)):
-                    graph_objs_vector = self.gcn(self.objs_vector[i][0], self.graph[i])
+                    graph_objs_vector = self.gcn(
+                        self.objs_vector[i][0], self.graph[i])
                     # bounding box prediction
-                    boxes_pred_save = self.box_net(self.objs_vector[i][0], graph_objs_vector)
-                    boxes_pred_collection.append((boxes_pred_save, self.real_box[i][1]))
-                save_img_results(self.imgs_tcpu, self.real_box, boxes_pred_collection, epoch, self.image_dir)
+                    boxes_pred_save = self.box_net(
+                        self.objs_vector[i][0], graph_objs_vector)
+                    boxes_pred_collection.append(
+                        (boxes_pred_save, self.real_box[i][1]))
+                save_img_results(self.imgs_tcpu, self.real_box,
+                                 boxes_pred_collection, epoch, self.image_dir)
                 save_txt_results(self.key, epoch, self.text_dir)
 
                 # evaluate the model
                 print('generating the test data...')
                 for step_test, data_test in enumerate(self.dataloader_test, 0):
                     # get data
-                    self.imgs_tcpu_test, self.graph_test, self.bbox_test, self.objs_vector_test, self.key_test = self.prepare_data_test(data_test)
+                    self.imgs_tcpu_test, self.graph_test, self.bbox_test, self.objs_vector_test, self.key_test = self.prepare_data_test(
+                        data_test)
                     boxes_pred_test_collection = []
                     for i in range(len(self.bbox_test)):
-                        graph_objs_vector_test = self.gcn(self.objs_vector_test[i][0], self.graph_test[i])
+                        graph_objs_vector_test = self.gcn(
+                            self.objs_vector_test[i][0], self.graph_test[i])
                         # bounding box prediction
-                        boxes_pred_test = self.box_net(self.objs_vector_test[i][0], graph_objs_vector_test)
-                        boxes_pred_test_collection.append((boxes_pred_test, self.bbox_test[i][1]))
+                        boxes_pred_test = self.box_net(
+                            self.objs_vector_test[i][0], graph_objs_vector_test)
+                        boxes_pred_test_collection.append(
+                            (boxes_pred_test, self.bbox_test[i][1]))
                         # record the loss
                         if i == 0:
-                            err_bbox_test = self.criterion_bbox(boxes_pred_test, self.bbox_test[i][0])
+                            err_bbox_test = self.criterion_bbox(
+                                boxes_pred_test, self.bbox_test[i][0])
                         else:
-                            err_bbox_test += self.criterion_bbox(boxes_pred_test, self.bbox_test[i][0])
+                            err_bbox_test += self.criterion_bbox(
+                                boxes_pred_test, self.bbox_test[i][0])
                     err_bbox_test = err_bbox_test / len(self.bbox_test)
                     err_total_test = cfg.TRAIN.COEFF.BBOX_LOSS * err_bbox_test
                     if step_test == 0:
-                        save_img_results_test(self.imgs_tcpu_test, self.bbox_test, boxes_pred_test_collection, epoch, self.image_dir_test)
-                        save_txt_results(self.key_test, epoch, self.text_dir_test)
+                        save_img_results_test(
+                            self.imgs_tcpu_test, self.bbox_test, boxes_pred_test_collection, epoch, self.image_dir_test)
+                        save_txt_results(self.key_test, epoch,
+                                         self.text_dir_test)
                     break
                 # plot
                 self.testing_epoch.append(epoch)
@@ -351,8 +381,14 @@ class LayoutTrainer(object):
             self.training_error.append(err_total)
             # plot
             plt.figure(0)
-            plt.plot(self.training_epoch, self.training_error, color="r", linestyle="-", linewidth=1, label="training")
-            plt.plot(self.testing_epoch, self.testing_error, color="b", linestyle="-", linewidth=1, label="testing")
+            training_error_numpy = [tensor.detach().numpy()
+                                    for tensor in self.training_error]
+            testining_error_numpy = [tensor.detach().numpy()
+                                     for tensor in self.testing_error]
+            plt.plot(self.training_epoch, training_error_numpy,
+                     color="r", linestyle="-", linewidth=1, label="training")
+            plt.plot(self.testing_epoch, training_error_numpy, color="b",
+                     linestyle="-", linewidth=1, label="testing")
             plt.xlabel("epoch")
             plt.ylabel("loss")
             plt.legend(loc='best')
@@ -404,29 +440,39 @@ class LayoutTrainer(object):
         count_boxes = 0
         for step_test, data_test in enumerate(self.dataloader_test, 1):
             # get data
-            self.imgs_tcpu_test, self.graph_test, self.bbox_test, self.objs_vector_test, self.key_test = self.prepare_data_test(data_test)
+            self.imgs_tcpu_test, self.graph_test, self.bbox_test, self.objs_vector_test, self.key_test = self.prepare_data_test(
+                data_test)
             boxes_pred_test_collection = []
             boxes_pred_test_collection_gt = []
             for i in range(len(self.bbox_test)):
-                graph_objs_vector_test = self.gcn(self.objs_vector_test[i][0], self.graph_test[i])
+                graph_objs_vector_test = self.gcn(
+                    self.objs_vector_test[i][0], self.graph_test[i])
                 # bounding box prediction
-                boxes_pred_test = self.box_net(self.objs_vector_test[i][0], graph_objs_vector_test)
-                IoU, num_boxes = bbox_iou(boxes_pred_test, self.bbox_test[i][0])
+                boxes_pred_test = self.box_net(
+                    self.objs_vector_test[i][0], graph_objs_vector_test)
+                IoU, num_boxes = bbox_iou(
+                    boxes_pred_test, self.bbox_test[i][0])
                 total_IoU += IoU
                 count_boxes += num_boxes
-                boxes_pred_test_collection.append((boxes_pred_test, self.bbox_test[i][1]))
-                boxes_pred_test_collection_gt.append((self.bbox_test[i][0], self.bbox_test[i][1]))
+                boxes_pred_test_collection.append(
+                    (boxes_pred_test, self.bbox_test[i][1]))
+                boxes_pred_test_collection_gt.append(
+                    (self.bbox_test[i][0], self.bbox_test[i][1]))
             # save layout images and texts
-            save_img_results_test(self.imgs_tcpu_test, self.bbox_test, boxes_pred_test_collection, step_test, self.image_dir_eval)
-            save_txt_results_bbox(boxes_pred_test_collection, step_test, self.text_dir_eval)
-            save_txt_results_bbox(boxes_pred_test_collection_gt, step_test, self.text_dir_eval_gt)
+            save_img_results_test(self.imgs_tcpu_test, self.bbox_test,
+                                  boxes_pred_test_collection, step_test, self.image_dir_eval)
+            save_txt_results_bbox(boxes_pred_test_collection,
+                                  step_test, self.text_dir_eval)
+            save_txt_results_bbox(
+                boxes_pred_test_collection_gt, step_test, self.text_dir_eval_gt)
             # region Processing
-            from regionProcessing import RegionProcessor,get_merge_image
+            from regionProcessing import RegionProcessor, get_merge_image
             room_classes = ['livingroom', 'bedroom', 'corridor', 'kitchen',
                             'washroom', 'study', 'closet', 'storage', 'balcony']
-            coord_data = [boxes_pred_test.cpu(), self.bbox_test[0][1], room_classes]
+            coord_data = [boxes_pred_test.cpu(), self.bbox_test[0]
+                          [1], room_classes]
             processor = RegionProcessor(coord_data=coord_data)
             lines, rooms = processor.get_lines_from_json()
-            print(lines, rooms)
-            get_merge_image(lines, rooms, processor, self.region_dir_eval, step_test)
+            get_merge_image(lines, rooms, processor,
+                            self.region_dir_eval, step_test)
         print('Avg IoU: {}'.format(total_IoU/count_boxes))

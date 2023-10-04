@@ -1,14 +1,14 @@
+import numpy as np
+import cv2
+import os
+from miscc.config import cfg
 import torch
 import math
 irange = range
 
-from miscc.config import cfg
-import os
-import cv2
-import numpy as np
 
 def make_grid(tensor, nrow=8, padding=2,
-              normalize=False, range=None, 
+              normalize=False, range=None,
               scale_each=False, pad_value=0):
     """Make a grid of images.
 
@@ -33,7 +33,8 @@ def make_grid(tensor, nrow=8, padding=2,
     """
     if not (torch.is_tensor(tensor) or
             (isinstance(tensor, list) and all(torch.is_tensor(t) for t in tensor))):
-        raise TypeError('tensor or list of tensors expected, got {}'.format(type(tensor)))
+        raise TypeError(
+            'tensor or list of tensors expected, got {}'.format(type(tensor)))
 
     # if list of tensors, convert to a 4D mini-batch Tensor
     if isinstance(tensor, list):
@@ -52,7 +53,8 @@ def make_grid(tensor, nrow=8, padding=2,
     if normalize is True:
         tensor = tensor.clone()  # avoid modifying tensor in-place
         if range is not None:
-            assert isinstance(range, tuple), "range has to be a tuple (min, max) if specified. min and max are numbers"
+            assert isinstance(
+                range, tuple), "range has to be a tuple (min, max) if specified. min and max are numbers"
 
         # def norm_ip(img, min, max):
         #     img.clamp_(min=min, max=max)
@@ -79,7 +81,6 @@ def make_grid(tensor, nrow=8, padding=2,
         else:
             norm_range(tensor, range)
 
-
     if tensor.size(0) == 1:
         return tensor.squeeze()
 
@@ -87,8 +88,10 @@ def make_grid(tensor, nrow=8, padding=2,
     nmaps = tensor.size(0)
     xmaps = min(nrow, nmaps)
     ymaps = int(math.ceil(float(nmaps) / xmaps))
-    height, width = int(tensor.size(2) + padding), int(tensor.size(3) + padding)
-    grid = tensor.new_full((3, height * ymaps + padding, width * xmaps + padding), pad_value)
+    height, width = int(tensor.size(
+        2) + padding), int(tensor.size(3) + padding)
+    grid = tensor.new_full(
+        (3, height * ymaps + padding, width * xmaps + padding), pad_value)
     k = 0
     for y in irange(ymaps):
         for x in irange(xmaps):
@@ -102,8 +105,8 @@ def make_grid(tensor, nrow=8, padding=2,
 
 
 def make_grid_bbox(tensor, box, nrow=8, padding=2,
-              normalize=False, range=None, 
-              scale_each=False, pad_value=0):
+                   normalize=False, range=None,
+                   scale_each=False, pad_value=0):
     """Make a grid of images.
 
     Args:
@@ -134,7 +137,8 @@ def make_grid_bbox(tensor, box, nrow=8, padding=2,
     # height, width = int(tensor.size(2) + padding), int(tensor.size(3) + padding)
     height, width = int(256 + padding), int(256 + padding)
     tensor = torch.ones(())
-    grid = tensor.new_full((3, height * ymaps + padding, width * xmaps + padding), pad_value)
+    grid = tensor.new_full(
+        (3, height * ymaps + padding, width * xmaps + padding), pad_value)
     # # add the white image into the grid
     # block = tensor.new_full((3, height - padding, width - padding), 9.0/13)
     k = 0
@@ -143,7 +147,8 @@ def make_grid_bbox(tensor, box, nrow=8, padding=2,
             if k >= nmaps:
                 break
             # add the white image into the grid
-            block = tensor.new_full((3, height - padding, width - padding), 9.0/13)
+            block = tensor.new_full(
+                (3, height - padding, width - padding), 9.0/13)
             # print(box[0].size())
             # print(box[1].size())
             # assert False
@@ -157,8 +162,8 @@ def make_grid_bbox(tensor, box, nrow=8, padding=2,
                     print(box)
                     print(k)
                     assert False
-                
-                if label!=-1:
+
+                if label != -1:
                     block = draw_box(block, box[k][0][z], label)
                     # print(k, z)
                 else:
@@ -192,8 +197,8 @@ def draw_box(image, curr_box, label):
 
 
 def make_grid_floor_plan(tensor, box, nrow=8, padding=2,
-              normalize=False, range=None, 
-              scale_each=False, pad_value=0):
+                         normalize=False, range=None,
+                         scale_each=False, pad_value=0):
     """Make a grid of images.
 
     Args:
@@ -223,7 +228,8 @@ def make_grid_floor_plan(tensor, box, nrow=8, padding=2,
     # height, width = int(tensor.size(2) + padding), int(tensor.size(3) + padding)
     height, width = int(256 + padding), int(256 + padding)
     tensor = torch.ones(())
-    grid = tensor.new_full((3, height * ymaps + padding, width * xmaps + padding), pad_value)
+    grid = tensor.new_full(
+        (3, height * ymaps + padding, width * xmaps + padding), pad_value)
     # # add the white image into the grid
     # block = tensor.new_full((3, height - padding, width - padding), 9.0/13)
 
@@ -236,9 +242,10 @@ def make_grid_floor_plan(tensor, box, nrow=8, padding=2,
             if k >= nmaps:
                 break
             # add the white image into the grid
-            block = tensor.new_full((3, height - padding, width - padding), 9.0/13)
+            block = tensor.new_full(
+                (3, height - padding, width - padding), 9.0/13)
             num_curr_box = box[k][0].size(0)
-            
+
             # sorted the box according to their size
             sorted_box = {}
             for z in irange(num_curr_box):
@@ -246,7 +253,10 @@ def make_grid_floor_plan(tensor, box, nrow=8, padding=2,
                 x1, y1, x2, y2 = curr_box[0], curr_box[1], curr_box[2], curr_box[3]
                 sorted_box[z] = (x2-x1)*(y2-y1)
             # to get sorted id
-            sorted_box = sorted(sorted_box.items(), lambda x, y: cmp(x[1], y[1]), reverse=True)
+            # sorted_box = sorted(sorted_box.items(), lambda x,
+            #                     y: cmp(x[1], y[1]), reverse=True)
+            sorted_box = sorted(sorted_box.items(),
+                                key=lambda x: x[1], reverse=True)
 
             # obtain the sorted box and corresponding label
             for m in irange(num_curr_box):
@@ -260,7 +270,7 @@ def make_grid_floor_plan(tensor, box, nrow=8, padding=2,
                     print(k)
                     assert False
                 # draw box in the current image
-                if label!=-1:
+                if label != -1:
                     block = draw_floor_plan(block, box[k][0][z], label)
                     # print(k, z)
                 else:
@@ -272,6 +282,7 @@ def make_grid_floor_plan(tensor, box, nrow=8, padding=2,
                 .copy_(block)
             k = k + 1
     return grid
+
 
 def draw_floor_plan(image, curr_box, label):
     """Draw 3-pixel width bounding boxes on the given image array.
@@ -308,27 +319,28 @@ def save_image(tensor, filename, nrow=8, padding=2,
 
     # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
     # ndarr = grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
-    ndarr = grid.mul_(13).add_(0.5).clamp_(0, 13).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+    ndarr = grid.mul_(13).add_(0.5).clamp_(0, 13).permute(
+        1, 2, 0).to('cpu', torch.uint8).numpy()
 
     # colorize the gray images
     # ndarr = cv2.applyColorMap(cv2.convertScaleAbs(ndarr, alpha=20.0), cv2.COLORMAP_JET)
-    palette=[]
-    for i in xrange(256):
-        palette.extend((255,255,255))
-    palette[:3*14]=np.array([[84, 139, 84],
-                            [0, 100, 0],
-                            [0, 0, 128],
-                            [85, 26, 139],
-                            [255, 0, 255],
-                            [165, 42, 42],
-                            [139, 134, 130],
-                            [205, 198, 115],
-                            [139, 58, 58],
-                            [255, 255, 255],
-                            [0, 0, 0],
-                            [30, 144, 255],
-                            [135, 206, 235],
-                            [255, 255, 0]], dtype='uint8').flatten()
+    palette = []
+    for i in irange(256):
+        palette.extend((255, 255, 255))
+    palette[:3*14] = np.array([[84, 139, 84],
+                              [0, 100, 0],
+                               [0, 0, 128],
+                               [85, 26, 139],
+                               [255, 0, 255],
+                               [165, 42, 42],
+                               [139, 134, 130],
+                               [205, 198, 115],
+                               [139, 58, 58],
+                               [255, 255, 255],
+                               [0, 0, 0],
+                               [30, 144, 255],
+                               [135, 206, 235],
+                               [255, 255, 0]], dtype='uint8').flatten()
 
     im = Image.fromarray(ndarr).convert('L')
     # colorize
@@ -337,7 +349,7 @@ def save_image(tensor, filename, nrow=8, padding=2,
 
 
 def save_bbox(tensor, box, filename, nrow=8, padding=0,
-               normalize=False, range=None, scale_each=False, pad_value=0):
+              normalize=False, range=None, scale_each=False, pad_value=0):
     """Save a given Tensor into an image file.
 
     Args:
@@ -346,36 +358,37 @@ def save_bbox(tensor, box, filename, nrow=8, padding=0,
         **kwargs: Other arguments are documented in ``make_grid``.
     """
     from PIL import Image
-    
+
     # print(box)
     # assert False
 
     grid = make_grid_bbox(tensor, box, nrow=nrow, padding=padding, pad_value=pad_value,
-                        normalize=normalize, range=range, scale_each=scale_each)
+                          normalize=normalize, range=range, scale_each=scale_each)
 
     # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
     # ndarr = grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
-    ndarr = grid.mul_(13).add_(0.5).clamp_(0, 13).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+    ndarr = grid.mul_(13).add_(0.5).clamp_(0, 13).permute(
+        1, 2, 0).to('cpu', torch.uint8).numpy()
 
     # colorize the gray images
     # ndarr = cv2.applyColorMap(cv2.convertScaleAbs(ndarr, alpha=20.0), cv2.COLORMAP_JET)
-    palette=[]
-    for i in xrange(256):
-        palette.extend((255,255,255))
-    palette[:3*14]=np.array([[84, 139, 84],
-                            [0, 100, 0],
-                            [0, 0, 128],
-                            [85, 26, 139],
-                            [255, 0, 255],
-                            [165, 42, 42],
-                            [139, 134, 130],
-                            [205, 198, 115],
-                            [139, 58, 58],
-                            [255, 255, 255],
-                            [0, 0, 0],
-                            [30, 144, 255],
-                            [135, 206, 235],
-                            [255, 255, 0]], dtype='uint8').flatten()
+    palette = []
+    for i in irange(256):
+        palette.extend((255, 255, 255))
+    palette[:3*14] = np.array([[84, 139, 84],
+                              [0, 100, 0],
+                               [0, 0, 128],
+                               [85, 26, 139],
+                               [255, 0, 255],
+                               [165, 42, 42],
+                               [139, 134, 130],
+                               [205, 198, 115],
+                               [139, 58, 58],
+                               [255, 255, 255],
+                               [0, 0, 0],
+                               [30, 144, 255],
+                               [135, 206, 235],
+                               [255, 255, 0]], dtype='uint8').flatten()
 
     # # draw box
     # ndarr = draw_box(ndarr, box, palette)
@@ -387,7 +400,7 @@ def save_bbox(tensor, box, filename, nrow=8, padding=0,
 
 
 def save_floor_plan(tensor, box, filename, nrow=8, padding=2,
-               normalize=False, range=None, scale_each=False, pad_value=0):
+                    normalize=False, range=None, scale_each=False, pad_value=0):
     """Save a given Tensor into an image file.
 
     Args:
@@ -396,38 +409,39 @@ def save_floor_plan(tensor, box, filename, nrow=8, padding=2,
         **kwargs: Other arguments are documented in ``make_grid``.
     """
     from PIL import Image
-    
+
     # print(box)
     # assert False
 
     grid = make_grid_floor_plan(tensor, box, nrow=nrow, padding=padding, pad_value=pad_value,
-                            normalize=normalize, range=range, scale_each=scale_each)
+                                normalize=normalize, range=range, scale_each=scale_each)
 
     # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
     # ndarr = grid.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
     # ndarr = grid.mul_(13).add_(0.5).clamp_(0, 13).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
-    ndarr = grid.mul_(13).add_(0.5).clamp_(0, 14).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+    ndarr = grid.mul_(13).add_(0.5).clamp_(0, 14).permute(
+        1, 2, 0).to('cpu', torch.uint8).numpy()
 
     # colorize the gray images
     # ndarr = cv2.applyColorMap(cv2.convertScaleAbs(ndarr, alpha=20.0), cv2.COLORMAP_JET)
-    palette=[]
-    for i in xrange(256):
-        palette.extend((255,255,255))
-    palette[:3*15]=np.array([[84, 139, 84],
-                            [0, 100, 0],
-                            [0, 0, 128],
-                            [85, 26, 139],
-                            [255, 0, 255],
-                            [165, 42, 42],
-                            [139, 134, 130],
-                            [205, 198, 115],
-                            [139, 58, 58],
-                            [255, 255, 255],
-                            [0, 0, 0],
-                            [30, 144, 255],
-                            [135, 206, 235],
-                            [255, 255, 0],
-                            [0, 0, 0]], dtype='uint8').flatten()
+    palette = []
+    for i in irange(256):
+        palette.extend((255, 255, 255))
+    palette[:3*15] = np.array([[84, 139, 84],
+                              [0, 100, 0],
+                               [0, 0, 128],
+                               [85, 26, 139],
+                               [255, 0, 255],
+                               [165, 42, 42],
+                               [139, 134, 130],
+                               [205, 198, 115],
+                               [139, 58, 58],
+                               [255, 255, 255],
+                               [0, 0, 0],
+                               [30, 144, 255],
+                               [135, 206, 235],
+                               [255, 255, 0],
+                               [0, 0, 0]], dtype='uint8').flatten()
 
     # # draw box
     # ndarr = draw_box(ndarr, box, palette)
@@ -438,11 +452,10 @@ def save_floor_plan(tensor, box, filename, nrow=8, padding=2,
     im.save(filename)
 
 
-
-def save_image_for_fid(tensor_real, tensor_fake, save_path_real, 
-                save_path_fake, step_test, batch_size,
-                nrow=1, padding=0, normalize=False, 
-                range=None, scale_each=False, pad_value=0):
+def save_image_for_fid(tensor_real, tensor_fake, save_path_real,
+                       save_path_fake, step_test, batch_size,
+                       nrow=1, padding=0, normalize=False,
+                       range=None, scale_each=False, pad_value=0):
     """Save a given Tensor into an image file.
 
     Args:
@@ -453,28 +466,27 @@ def save_image_for_fid(tensor_real, tensor_fake, save_path_real,
     from PIL import Image
 
     num_imgs = tensor_real.size(0)
-    for i in xrange(num_imgs):
+    for i in range(num_imgs):
         # save real images
         grid_real = make_grid(tensor_real[i], nrow=nrow, padding=padding, pad_value=pad_value,
-                         normalize=normalize, range=range, scale_each=scale_each)
+                              normalize=normalize, range=range, scale_each=scale_each)
         # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
         # ndarr_real = grid_real.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
-        ndarr_real = grid_real.mul_(13).add_(0.5).clamp_(0, 13).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+        ndarr_real = grid_real.mul_(13).add_(0.5).clamp_(
+            0, 13).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
         im_real = Image.fromarray(ndarr_real)
-        filename_real = os.path.join(save_path_real, \
-            '{:0>4}.png'.format(step_test*batch_size+i))
+        filename_real = os.path.join(save_path_real,
+                                     '{:0>4}.png'.format(step_test*batch_size+i))
         im_real.save(filename_real)
 
         # save fake images
         grid_fake = make_grid(tensor_fake[i], nrow=nrow, padding=padding, pad_value=pad_value,
-                         normalize=normalize, range=range, scale_each=scale_each)
+                              normalize=normalize, range=range, scale_each=scale_each)
         # Add 0.5 after unnormalizing to [0, 255] to round to nearest integer
         # ndarr_fake = grid_fake.mul_(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
-        ndarr_fake = grid_fake.mul_(13).add_(0.5).clamp_(0, 13).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
+        ndarr_fake = grid_fake.mul_(13).add_(0.5).clamp_(
+            0, 13).permute(1, 2, 0).to('cpu', torch.uint8).numpy()
         im_fake = Image.fromarray(ndarr_fake)
-        filename_fake = os.path.join(save_path_fake, \
-            '{:0>4}.png'.format(step_test*batch_size+i))
+        filename_fake = os.path.join(save_path_fake,
+                                     '{:0>4}.png'.format(step_test*batch_size+i))
         im_fake.save(filename_fake)
-
-
-

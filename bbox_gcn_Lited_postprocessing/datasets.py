@@ -67,7 +67,7 @@ class TextDataset(data.Dataset):
         self.norm = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-            ])
+        ])
         self.target_transform = target_transform
         self.imsize = []
         for i in range(cfg.TREE.BRANCH_NUM):
@@ -76,9 +76,10 @@ class TextDataset(data.Dataset):
 
         self.data = []
         self.data_dir = data_dir
-        self.room_classes = ['livingroom', 'bedroom', 'corridor', 'kitchen', 
+        self.room_classes = ['livingroom', 'bedroom', 'corridor', 'kitchen',
                              'washroom', 'study', 'closet', 'storage', 'balcony']
-        self.position_classes = ['NW', 'N', 'NE', 'W', 'C', 'E', 'SW', 'S', 'SE']
+        self.position_classes = ['NW', 'N',
+                                 'NE', 'W', 'C', 'E', 'SW', 'S', 'SE']
         self.filenames = self.load_filenames(data_dir)
         self.train_set = train_set
         self.furniture = cfg.FURNITURE  # False
@@ -87,7 +88,7 @@ class TextDataset(data.Dataset):
             # load train id of the dataset
             filepath = os.path.join(data_dir, 'train_id.pickle')
             with open(filepath, 'rb') as f:
-                train_id = pickle.load(f)
+                train_id = pickle.load(f, encoding='latin1')
             train_id = sorted(train_id)
             # build training filenames
             self.filenames_train = []
@@ -102,14 +103,15 @@ class TextDataset(data.Dataset):
             self.bboxes = self.load_bboxes(data_dir, self.filenames_train)
 
             # load vectors of objects(1:room_class+size+position class 2:room type)
-            self.objs_vectors = self.load_objs_vectors(data_dir, self.filenames_train)
+            self.objs_vectors = self.load_objs_vectors(
+                data_dir, self.filenames_train)
             # build iterator
             self.iterator = self.prepair_training_pairs
         else:
             # load train id of the dataset
             filepath = os.path.join(data_dir, 'test_id.pickle')
             with open(filepath, 'rb') as f:
-                test_id = pickle.load(f)
+                test_id = pickle.load(f, encoding='latin1')
             test_id = sorted(test_id)
             # build test filenames
             self.filenames_test = []
@@ -121,7 +123,8 @@ class TextDataset(data.Dataset):
             # load bounding boxes
             self.bboxes = self.load_bboxes(data_dir, self.filenames_test)
             # load vectors of objects
-            self.objs_vectors = self.load_objs_vectors(data_dir, self.filenames_test)
+            self.objs_vectors = self.load_objs_vectors(
+                data_dir, self.filenames_test)
             # build iterator
             self.iterator = self.prepair_test_pairs
 
@@ -187,7 +190,7 @@ class TextDataset(data.Dataset):
         adj = graph
 
         # convert to space format
-        adj = sp.coo_matrix(adj, dtype = np.float32)
+        adj = sp.coo_matrix(adj, dtype=np.float32)
 
         # build symmetric adjacency matrix
         # the item "adj.multiply(adj.T > adj)" may be useless
@@ -313,14 +316,16 @@ class TextDataset(data.Dataset):
                         # position in vector
                         position = positions[i]
                         idx_position = self.position_classes.index(position)
-                        objs_vector[counter][len(self.room_classes)+1+idx_position] = 1.0
+                        objs_vector[counter][len(
+                            self.room_classes)+1+idx_position] = 1.0
                         # size in vector
                         objs_vector[counter][len(self.room_classes)] = sizes[i]
                     else:
                         # position in vector
                         position = positions[i]
                         idx_position = self.position_classes.index(position)
-                        objs_vector[counter][len(self.room_classes)+idx_position] = 1.0
+                        objs_vector[counter][len(
+                            self.room_classes)+idx_position] = 1.0
 
                     # record type
                     objs[counter] = idx_type
@@ -338,14 +343,18 @@ class TextDataset(data.Dataset):
 
         # load label images
         if self.furniture == True:
-            label_img_name = os.path.join(data_dir, 'label', '{}.png'.format(key))
+            label_img_name = os.path.join(
+                data_dir, 'label', '{}.png'.format(key))
         else:
-            label_img_name = os.path.join(data_dir, 'label_withoutFA_rearrange', '{}.png'.format(key))
-        label_imgs = get_imgs(label_img_name, self.imsize, self.transform, normalize_img=self.norm)
+            label_img_name = os.path.join(
+                data_dir, 'label_withoutFA_rearrange', '{}.png'.format(key))
+        label_imgs = get_imgs(label_img_name, self.imsize,
+                              self.transform, normalize_img=self.norm)
 
         # load mask images
         mask_img_name = os.path.join(data_dir, 'mask', '{}.png'.format(key))
-        mask_imgs = get_imgs(mask_img_name, self.imsize, self.transform, normalize_img=self.norm)
+        mask_imgs = get_imgs(mask_img_name, self.imsize,
+                             self.transform, normalize_img=self.norm)
 
         # get wrong images
         wrong_ix = random.randint(0, len(self.filenames_train) - 1)
@@ -355,14 +364,19 @@ class TextDataset(data.Dataset):
 
         # load label images
         if self.furniture == True:
-            wrong_label_img_name = os.path.join(data_dir, 'label', '{}.png'.format(wrong_key))
+            wrong_label_img_name = os.path.join(
+                data_dir, 'label', '{}.png'.format(wrong_key))
         else:
-            wrong_label_img_name = os.path.join(data_dir, 'label_withoutFA_rearrange', '{}.png'.format(wrong_key))
-        wrong_label_imgs = get_imgs(wrong_label_img_name, self.imsize, self.transform, normalize_img=self.norm)
+            wrong_label_img_name = os.path.join(
+                data_dir, 'label_withoutFA_rearrange', '{}.png'.format(wrong_key))
+        wrong_label_imgs = get_imgs(
+            wrong_label_img_name, self.imsize, self.transform, normalize_img=self.norm)
 
         # load mask images
-        wrong_mask_img_name = os.path.join(data_dir, 'mask', '{}.png'.format(wrong_key))
-        wrong_mask_imgs = get_imgs(wrong_mask_img_name, self.imsize, self.transform, normalize_img=self.norm)
+        wrong_mask_img_name = os.path.join(
+            data_dir, 'mask', '{}.png'.format(wrong_key))
+        wrong_mask_imgs = get_imgs(
+            wrong_mask_img_name, self.imsize, self.transform, normalize_img=self.norm)
         return label_imgs, mask_imgs, wrong_label_imgs, wrong_mask_imgs, graph, bbox, objs_vector, key
 
     def prepair_test_pairs(self, index):
@@ -374,14 +388,18 @@ class TextDataset(data.Dataset):
         objs_vector = self.objs_vectors[index]
         # load label images
         if self.furniture == True:
-            label_img_name = os.path.join(data_dir, 'label', '{}.png'.format(key))
+            label_img_name = os.path.join(
+                data_dir, 'label', '{}.png'.format(key))
         else:
-            label_img_name = os.path.join(data_dir, 'label_withoutFA_rearrange', '{}.png'.format(key))
-        label_imgs = get_imgs_test(label_img_name, self.imsize, self.transform, normalize_img=self.norm)
+            label_img_name = os.path.join(
+                data_dir, 'label_withoutFA_rearrange', '{}.png'.format(key))
+        label_imgs = get_imgs_test(
+            label_img_name, self.imsize, self.transform, normalize_img=self.norm)
 
         # load mask images
         mask_img_name = os.path.join(data_dir, 'mask', '{}.png'.format(key))
-        mask_imgs = get_imgs_test(mask_img_name, self.imsize, self.transform, normalize_img=self.norm)
+        mask_imgs = get_imgs_test(
+            mask_img_name, self.imsize, self.transform, normalize_img=self.norm)
 
         # return imgs, wrong_imgs, embedding, key  # captions
         return label_imgs, mask_imgs, graph, bbox, objs_vector, key
@@ -422,7 +440,7 @@ class TextDataset(data.Dataset):
             return label_imgs, mask_imgs, wrong_label_imgs, wrong_mask_imgs, graph, bbox, objs_vector, key
 
         # test set
-        elif len(batch[0])==6:
+        elif len(batch[0]) == 6:
             label_imgs = list()
             mask_imgs = list()
             graph = list()

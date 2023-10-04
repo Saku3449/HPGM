@@ -17,7 +17,8 @@ def define_model(device):
     N = 0
     ngf = int(opt.ngf)
     ndf = int(opt.ndf)
-    desc = "fc" + str(opt.fContent) + "_ngf" + str(ngf) + "_ndf" + str(ndf) + "_dep" + str(nDep) + "-" + str(opt.nDepD)
+    desc = "fc" + str(opt.fContent) + "_ngf" + str(ngf) + "_ndf" + \
+        str(ndf) + "_dep" + str(nDep) + "-" + str(opt.nDepD)
     if opt.WGAN:
         desc += '_WGAN'
     if opt.LS:
@@ -28,7 +29,8 @@ def define_model(device):
         desc += "_scale" + str(opt.textureScale)
     # netE = ENCODER(ndf, opt.nDepD, nz, bSigm=not opt.LS and not opt.WGAN, condition=True)
     netG = NetG(ngf, nDep, nz, opt.nc, True)
-    netD = Discriminator(ndf, opt.nDepD, opt.nc, bSigm=not opt.LS and not opt.WGAN, condition=True)
+    netD = Discriminator(ndf, opt.nDepD, opt.nc,
+                         bSigm=not opt.LS and not opt.WGAN, condition=True)
     # load model
     if opt.netD != '':
         state_dict = torch.load(opt.netD, map_location='cpu')
@@ -61,14 +63,17 @@ def data_loader():
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
     mirrorT = []
     if bMirror:
-        mirrorT += [transforms.RandomVerticalFlip(), transforms.RandomHorizontalFlip()]
+        mirrorT += [transforms.RandomVerticalFlip(),
+                    transforms.RandomHorizontalFlip()]
     transformTex = transforms.Compose(mirrorT + canonicT)
     # training set
-    dataset = TextureDataset(opt.texturePath, transformTex, opt.textureScale, train=True)
+    dataset = TextureDataset(
+        opt.texturePath, transformTex, opt.textureScale, train=True)
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batchSize, shuffle=opt.shuffle,
                                              num_workers=int(opt.workers), drop_last=True)
     # testing set
-    dataset_test = TextureDataset(opt.texturePath, transformTex, opt.textureScale, train=False)
+    dataset_test = TextureDataset(
+        opt.texturePath, transformTex, opt.textureScale, train=False)
     dataloader_test = torch.utils.data.DataLoader(dataset_test, batch_size=opt.batchSize, shuffle=False,
                                                   num_workers=int(opt.workers), drop_last=True)
     return dataloader, dataloader_test
@@ -101,12 +106,16 @@ if __name__ == "__main__":
     fixnoise = fixnoise.to(device)
     Noise = [NZ, noise, fixnoise]
     # setup optimizer
-    optimizerD = optim.Adam(netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))  # netD.parameters()
-    optimizerG = optim.Adam(netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+    optimizerD = optim.Adam(netD.parameters(), lr=opt.lr, betas=(
+        opt.beta1, 0.999))  # netD.parameters()
+    optimizerG = optim.Adam(netG.parameters(), lr=opt.lr,
+                            betas=(opt.beta1, 0.999))
+    print(opt)
     if opt.train == 0:
         test(opt, dataloader_test, device, netD, netG, Noise, desc)
     elif opt.train == 1:
-        train(opt, dataloader, dataloader_test, device, netD, netG, desc, Noise, optimizerD, optimizerG)
+        train(opt, dataloader, dataloader_test, device, netD,
+              netG, desc, Noise, optimizerD, optimizerG)
     elif opt.train == 2:
         save_embedding(opt, dataloader_test, device, netD)
     elif opt.train == 3:

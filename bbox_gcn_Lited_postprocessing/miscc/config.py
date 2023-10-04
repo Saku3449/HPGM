@@ -73,15 +73,15 @@ __C.FIXED_NOISE = False
 __C.USE_NOISE = True
 
 __C.GRAPH = edict()
-__C.GRAPH.LR = 2e-4 # 0.01
+__C.GRAPH.LR = 2e-4  # 0.01
 __C.GRAPH.WEIGHT_DECAY = 0.0  # 5e-4
 
 __C.GCN = edict()
-__C.GCN.LR = 2e-4 # 0.01
+__C.GCN.LR = 2e-4  # 0.01
 __C.GCN.WEIGHT_DECAY = 0.0  # 5e-4
 
 __C.BBOX = edict()
-__C.BBOX.LR = 2e-4 # 0.01
+__C.BBOX.LR = 2e-4  # 0.01
 __C.BBOX.WEIGHT_DECAY = 0.0  # 5e-4
 
 
@@ -92,9 +92,9 @@ def _merge_a_into_b(a, b):
     if type(a) is not edict:
         return
 
-    for k, v in a.iteritems():
+    for k, v in a.items():
         # a must specify keys that are in b
-        if not b.has_key(k):
+        if k not in b:
             raise KeyError('{} is not a valid config key'.format(k))
 
         # the types must match, too
@@ -121,5 +121,5 @@ def cfg_from_file(filename):
     """Load a config file and merge it into the default options."""
     import yaml
     with open(filename, 'r') as f:
-        yaml_cfg = edict(yaml.load(f))
+        yaml_cfg = edict(yaml.load(f, Loader=yaml.SafeLoader))
     _merge_a_into_b(yaml_cfg, __C)

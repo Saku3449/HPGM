@@ -22,7 +22,6 @@ def parse_args():
                         default='cfg/layout.yml', type=str)
     parser.add_argument('--data_dir', dest='data_dir', type=str, default='')
     parser.add_argument('--manualSeed', type=int, help='manual seed')
-    parser.add_argument('--gpu', type=str, help='manual seed')
     args = parser.parse_args()
     return args
 
@@ -34,7 +33,7 @@ if __name__ == "__main__":
         cfg_from_file(args.cfg_file)
     if args.data_dir != '':
         cfg.DATA_DIR = args.data_dir
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    # os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
     print('Using config:')
     pprint.pprint(cfg)
 
@@ -59,8 +58,7 @@ if __name__ == "__main__":
 
     # Get data loader
     imsize = cfg.TREE.BASE_SIZE * (2 ** (cfg.TREE.BRANCH_NUM-1))
-    image_transform = transforms.Compose([
-                                         ])
+    image_transform = transforms.Compose([])
     num_gpu = len(cfg.GPU_ID.split(','))
     if cfg.TRAIN.FLAG:
         from datasets import TextDataset

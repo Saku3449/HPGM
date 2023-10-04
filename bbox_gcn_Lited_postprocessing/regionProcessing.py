@@ -18,6 +18,11 @@ class RegionProcessor():
         self.json_data = json_data
         self.coord_data = coord_data
 
+    def sort_min_max(self, min, max):
+        if min > max:
+            min, max = max, min
+        return min, max
+
     # get lines of boundary from room's box.
     # line: x1, y1, x2, y2, make sure x1<=x2 and y1<=y2
     # processed_room: width, height, location
@@ -29,11 +34,14 @@ class RegionProcessor():
             rooms_counter = [0, 0, 0, 0, 0, 0, 0, 0, 0]
             for i in range(len(bbox_type)):
                 rooms_counter[bbox_type[i]] += 1
-                key = "%s%s" % (room_class[bbox_type[i]], rooms_counter[bbox_type[i]])
+                key = "%s%s" % (
+                    room_class[bbox_type[i]], rooms_counter[bbox_type[i]])
                 min_x = int(float(bbox_pred[i][0]) * image_size)
                 min_y = int(float(bbox_pred[i][1]) * image_size)
                 max_x = int(float(bbox_pred[i][2]) * image_size)
                 max_y = int(float(bbox_pred[i][3]) * image_size)
+                min_x, max_x = self.sort_min_max(min_x, max_x)
+                min_y, max_y = self.sort_min_max(min_y, max_y)
                 lines.append([min_x, min_y, max_x, min_y])
                 lines.append([min_x, max_y, max_x, max_y])
                 lines.append([max_x, min_y, max_x, max_y])
@@ -41,7 +49,8 @@ class RegionProcessor():
                 width = (max_x - min_x + 1) / 2.0
                 height = (max_y - min_y + 1) / 2.0
                 location = [(min_x + max_x) / 2.0, (min_y + max_y) / 2.0]
-                processed_room = {'location': location, 'width': width, 'height': height}
+                processed_room = {'location': location,
+                                  'width': width, 'height': height}
                 processed_rooms[key] = processed_room
         else:
             rooms = self.json_data["rooms"]
@@ -59,7 +68,8 @@ class RegionProcessor():
                 width = (max_x - min_x + 1)/2.0
                 height = (max_y - min_y + 1)/2.0
                 location = [(min_x + max_x)/2.0, (min_y + max_y)/2.0]
-                processed_room = {'location': location, 'width': width, 'height': height}
+                processed_room = {'location': location,
+                                  'width': width, 'height': height}
                 processed_rooms[key] = processed_room
         return lines, processed_rooms
 
@@ -142,10 +152,12 @@ class RegionProcessor():
                     if line1[0] == line1[2]:
                         intersection = [line1[0], line2[1]]
                         i_in_extended_range_of_j = \
-                            (line2[0] - distance_threshold < line1[0] < line2[2] + distance_threshold)
+                            (line2[0] - distance_threshold < line1[0]
+                             < line2[2] + distance_threshold)
                         i_in_range_of_j = (line2[0] <= line1[0] <= line2[2])
                         j_in_extended_range_of_i = \
-                            (line1[1] - distance_threshold < line2[1] < line1[3] + distance_threshold)
+                            (line1[1] - distance_threshold < line2[1]
+                             < line1[3] + distance_threshold)
                         j_in_range_of_i = (line1[1] <= line2[1] <= line1[3])
                         # if in extended range but not in range ,then the line can be extended
                         if i_in_extended_range_of_j and j_in_extended_range_of_i:
@@ -164,10 +176,12 @@ class RegionProcessor():
                     else:
                         intersection = [line2[0], line1[1]]
                         i_in_extended_range_of_j = \
-                            (line2[1] - distance_threshold < line1[1] < line2[3] + distance_threshold)
+                            (line2[1] - distance_threshold < line1[1]
+                             < line2[3] + distance_threshold)
                         i_in_range_of_j = (line2[1] <= line1[1] <= line2[3])
                         j_in_extended_range_of_i = \
-                            (line1[0] - distance_threshold < line2[0] < line1[2] + distance_threshold)
+                            (line1[0] - distance_threshold < line2[0]
+                             < line1[2] + distance_threshold)
                         j_in_range_of_i = (line1[0] <= line2[0] <= line1[2])
                         # if in extended range but not in range ,then the line can be extended
                         if i_in_extended_range_of_j and j_in_extended_range_of_i:
@@ -216,14 +230,18 @@ class RegionProcessor():
                 intersections.append(line1[3])
                 intersections.sort()
                 for index in range(len(intersections) - 1):
-                    if intersections[index] != intersections[index + 1]:  # remove duplicated points
-                        decomposed_line.append([line1[0], intersections[index], line1[0], intersections[index + 1]])
+                    # remove duplicated points
+                    if intersections[index] != intersections[index + 1]:
+                        decomposed_line.append(
+                            [line1[0], intersections[index], line1[0], intersections[index + 1]])
             else:
                 intersections.append(line1[2])
                 intersections.sort()
                 for index in range(len(intersections) - 1):
-                    if intersections[index] != intersections[index + 1]:  # remove duplicated points
-                        decomposed_line.append([intersections[index], line1[1], intersections[index + 1], line1[1]])
+                    # remove duplicated points
+                    if intersections[index] != intersections[index + 1]:
+                        decomposed_line.append(
+                            [intersections[index], line1[1], intersections[index + 1], line1[1]])
             i = i + 1
         return decomposed_line
 
@@ -233,8 +251,8 @@ class RegionProcessor():
         for x in range(0, 256):  # calculate weight of every position to rooms in a 256 * 256 grid
             for y in range(0, 256):
                 point = Point(x, y)
-                for index in range(0, len(polygons)):
-                    if polygons[index].contains(point):
+                for index in range(0, len(polygons.geoms)):
+                    if polygons.geoms[index].contains(point):
                         for key in processed_rooms:
                             processed_room = processed_rooms[key]
                             weight = self.weight_function(point, processed_room['location'], processed_room['width'],
@@ -262,15 +280,15 @@ class RegionProcessor():
             if max_weight_room != 'none':
                 if max_weight_room in room_polygon_relation_map.keys():
                     room_polygon_relation = room_polygon_relation_map[max_weight_room]
-                    room_polygon_relation.append(polygons[index])
+                    room_polygon_relation.append(polygons.geoms[index])
                 else:
-                    room_polygon_relation = [polygons[index]]
+                    room_polygon_relation = [polygons.geoms[index]]
                     room_polygon_relation_map[max_weight_room] = room_polygon_relation
         return room_polygon_relation_map  # some room may not have polygons
 
     def weight_function(self, point, location, width, height):
         weight = 1 / width / height \
-                 * math.exp(-pow((point.x - location[0]) / width, 2) - pow((point.y - location[1]) / height, 2))
+            * math.exp(-pow((point.x - location[0]) / width, 2) - pow((point.y - location[1]) / height, 2))
         return weight
 
     # merge all polygons of a room. Merged result can be a Polygon or MultiPolygon with or without interior holes
@@ -284,6 +302,7 @@ class RegionProcessor():
                     merged_polygon = merged_polygon.union(polygons[index])
             merged_room_polygon_relation_map[room] = merged_polygon
         return merged_room_polygon_relation_map
+
 
 def get_merge_image(lines, rooms, processor, dir_path, count):
     lines = processor.merge_lines(lines, 4, 9, 6)
@@ -299,14 +318,16 @@ def get_merge_image(lines, rooms, processor, dir_path, count):
     shape_lines = []
     for i in range(0, len(lines)):
         if lines[i][0] != lines[i][2] or lines[i][1] != lines[i][3]:
-            shape_lines.append(((lines[i][0], lines[i][1]), (lines[i][2], lines[i][3])))
+            shape_lines.append(
+                ((lines[i][0], lines[i][1]), (lines[i][2], lines[i][3])))
         else:
             print(" zero length line warning!")
-    polygons, dangles, cuts, invalids = shapely.ops.polygonize_full(shape_lines)
-    print('polygons size:' + str(len(polygons)))
-    print('dangles size:' + str(len(dangles)))
-    print('cuts size:' + str(len(cuts)))
-    print('invalids size:' + str(len(invalids)))
+    polygons, dangles, cuts, invalids = shapely.ops.polygonize_full(
+        shape_lines)
+    print('polygons size:' + str(len(polygons.geoms)))
+    print('dangles size:' + str(dangles.length))
+    print('cuts size:' + str(cuts.length))
+    print('invalids size:' + str(invalids.length))
 
     array = np.ndarray((256, 256, 3), np.uint8)
     array[:, :, 0] = 0
@@ -321,22 +342,23 @@ def get_merge_image(lines, rooms, processor, dir_path, count):
 
     region_image = Image.fromarray(array)
     draw = ImageDraw.Draw(region_image)
-    print('polygons result:')
-    print(polygons)
-    for i in range(0, len(polygons)):
-        for j in range(0, len(polygons[i].exterior.coords)):
-            start = polygons[i].exterior.coords[j]
-            end = polygons[i].exterior.coords[(j + 1) % len(polygons[i].exterior.coords)]
+    for i in range(0, len(polygons.geoms)):
+        for j in range(0, len(polygons.geoms[i].exterior.coords)):
+            start = polygons.geoms[i].exterior.coords[j]
+            end = polygons.geoms[i].exterior.coords[(
+                j + 1) % len(polygons.geoms[i].exterior.coords)]
             draw.line([start[0], start[1], end[0], end[1]], 'cyan')
     # region_image.show()
     # Image.Image.save(region_image, "region_image.jpg")
 
     start = datetime.datetime.now()
-    room_polygon_relation_map = processor.generate_room_polygon_relation(polygons, rooms)
+    room_polygon_relation_map = processor.generate_room_polygon_relation(
+        polygons, rooms)
     end = datetime.datetime.now()
     print('generate room polygon relation time cost:')
     print((end - start))
-    merged_room_polygon_relation_map = processor.merge_polygon(room_polygon_relation_map)
+    merged_room_polygon_relation_map = processor.merge_polygon(
+        room_polygon_relation_map)
     print('merged polygons result:')
     print(merged_room_polygon_relation_map)
 
@@ -344,19 +366,23 @@ def get_merge_image(lines, rooms, processor, dir_path, count):
     draw = ImageDraw.Draw(merged_region_image)
     for room in merged_room_polygon_relation_map:
         polygon = merged_room_polygon_relation_map[room]
-        if isinstance(polygon, Polygon):  # polygon can be a Polygon or MultiPolygon with or without interior holes
+        # polygon can be a Polygon or MultiPolygon with or without interior holes
+        if isinstance(polygon, Polygon):
             for i in range(0, len(polygon.exterior.coords)):
                 start = polygon.exterior.coords[i]
-                end = polygon.exterior.coords[(i + 1) % len(polygon.exterior.coords)]
+                end = polygon.exterior.coords[(
+                    i + 1) % len(polygon.exterior.coords)]
                 draw.line([start[0], start[1], end[0], end[1]], 'cyan')
         else:
             for i in range(0, len(polygon.geoms)):
                 for j in range(0, len(polygon.geoms[i].exterior.coords)):
                     start = polygon.geoms[i].exterior.coords[j]
-                    end = polygon.geoms[i].exterior.coords[(j + 1) % len(polygon.geoms[i].exterior.coords)]
+                    end = polygon.geoms[i].exterior.coords[(
+                        j + 1) % len(polygon.geoms[i].exterior.coords)]
                     draw.line([start[0], start[1], end[0], end[1]], 'cyan')
     # merged_region_image.show()
-    image_path = os.path.join(dir_path, "merged_region_image_{}.jpg".format(count))
+    image_path = os.path.join(
+        dir_path, "merged_region_image_{}.jpg".format(count))
     Image.Image.save(merged_region_image, image_path)
 
 
@@ -382,10 +408,12 @@ if __name__ == '__main__':
     shape_lines = []
     for i in range(0, len(lines)):
         if lines[i][0] != lines[i][2] or lines[i][1] != lines[i][3]:
-            shape_lines.append(((lines[i][0], lines[i][1]), (lines[i][2], lines[i][3])))
+            shape_lines.append(
+                ((lines[i][0], lines[i][1]), (lines[i][2], lines[i][3])))
         else:
             print(" zero length line warning!")
-    polygons, dangles, cuts, invalids = shapely.ops.polygonize_full(shape_lines)
+    polygons, dangles, cuts, invalids = shapely.ops.polygonize_full(
+        shape_lines)
     print('polygons size:' + str(len(polygons)))
     print('dangles size:' + str(len(dangles)))
     print('cuts size:' + str(len(cuts)))
@@ -409,17 +437,20 @@ if __name__ == '__main__':
     for i in range(0, len(polygons)):
         for j in range(0, len(polygons[i].exterior.coords)):
             start = polygons[i].exterior.coords[j]
-            end = polygons[i].exterior.coords[(j + 1) % len(polygons[i].exterior.coords)]
+            end = polygons[i].exterior.coords[(
+                j + 1) % len(polygons[i].exterior.coords)]
             draw.line([start[0], start[1], end[0], end[1]], 'cyan')
     # region_image.show()
-    Image.Image.save(region_image, "region_image.jpg")
+    Image.Image.save(region_image, "region_image.")
 
     start = datetime.datetime.now()
-    room_polygon_relation_map = processor.generate_room_polygon_relation(polygons, rooms)
+    room_polygon_relation_map = processor.generate_room_polygon_relation(
+        polygons, rooms)
     end = datetime.datetime.now()
     print('generate room polygon relation time cost:')
     print((end - start))
-    merged_room_polygon_relation_map = processor.merge_polygon(room_polygon_relation_map)
+    merged_room_polygon_relation_map = processor.merge_polygon(
+        room_polygon_relation_map)
     print('merged polygons result:')
     print(merged_room_polygon_relation_map)
 
@@ -427,16 +458,19 @@ if __name__ == '__main__':
     draw = ImageDraw.Draw(merged_region_image)
     for room in merged_room_polygon_relation_map:
         polygon = merged_room_polygon_relation_map[room]
-        if isinstance(polygon, Polygon):  # polygon can be a Polygon or MultiPolygon with or without interior holes
+        # polygon can be a Polygon or MultiPolygon with or without interior holes
+        if isinstance(polygon, Polygon):
             for i in range(0, len(polygon.exterior.coords)):
                 start = polygon.exterior.coords[i]
-                end = polygon.exterior.coords[(i + 1) % len(polygon.exterior.coords)]
+                end = polygon.exterior.coords[(
+                    i + 1) % len(polygon.exterior.coords)]
                 draw.line([start[0], start[1], end[0], end[1]], 'cyan')
         else:
             for i in range(0, len(polygon.geoms)):
                 for j in range(0, len(polygon.geoms[i].exterior.coords)):
                     start = polygon.geoms[i].exterior.coords[j]
-                    end = polygon.geoms[i].exterior.coords[(j + 1) % len(polygon.geoms[i].exterior.coords)]
+                    end = polygon.geoms[i].exterior.coords[(
+                        j + 1) % len(polygon.geoms[i].exterior.coords)]
                     draw.line([start[0], start[1], end[0], end[1]], 'cyan')
     # merged_region_image.show()
     Image.Image.save(merged_region_image, "merged_region_image.jpg")

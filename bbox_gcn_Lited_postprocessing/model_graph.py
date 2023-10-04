@@ -27,15 +27,17 @@ class GraphConvolution(Module):
         super(GraphConvolution, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
-        if cfg.CUDA:
-            self.weight = Parameter(torch.cuda.FloatTensor(in_features, out_features))
-        else:
-            self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+        # if cfg.CUDA:
+        #     self.weight = Parameter(torch.cuda.FloatTensor(in_features, out_features))
+        # else:
+        #     self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+        self.weight = Parameter(torch.FloatTensor(in_features, out_features))
         if bias:
-            if cfg.CUDA:
-                self.bias = Parameter(torch.cuda.FloatTensor(out_features))
-            else:
-                self.bias = Parameter(torch.FloatTensor(out_features))
+            # if cfg.CUDA:
+            #     self.bias = Parameter(torch.cuda.FloatTensor(out_features))
+            # else:
+            #     self.bias = Parameter(torch.FloatTensor(out_features))
+            self.bias = Parameter(torch.FloatTensor(out_features))
         else:
             self.register_parameter('bias', None)
         self.reset_parameters()

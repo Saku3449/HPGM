@@ -2,7 +2,8 @@ from __future__ import division
 import torch
 import sys
 import math
-from PIL import Image, ImageOps, ImageEnhance, PILLOW_VERSION
+# from PIL import Image, ImageOps, ImageEnhance, PILLOW_VERSION
+from PIL import Image, ImageOps, ImageEnhance
 try:
     import accimage
 except ImportError:
@@ -46,8 +47,9 @@ def to_tensor(pic):
     Returns:
         Tensor: Converted image.
     """
-    if not(_is_pil_image(pic) or _is_numpy_image(pic)):
-        raise TypeError('pic should be PIL Image or ndarray. Got {}'.format(type(pic)))
+    if not (_is_pil_image(pic) or _is_numpy_image(pic)):
+        raise TypeError(
+            'pic should be PIL Image or ndarray. Got {}'.format(type(pic)))
 
     if isinstance(pic, np.ndarray):
         # handle numpy array
@@ -63,7 +65,8 @@ def to_tensor(pic):
             return img
 
     if accimage is not None and isinstance(pic, accimage.Image):
-        nppic = np.zeros([pic.channels, pic.height, pic.width], dtype=np.float32)
+        nppic = np.zeros(
+            [pic.channels, pic.height, pic.width], dtype=np.float32)
         pic.copyto(nppic)
         return torch.from_numpy(nppic)
 
@@ -111,12 +114,14 @@ def to_pil_image(pic, mode=None):
     Returns:
         PIL Image: Image converted to PIL Image.
     """
-    if not(isinstance(pic, torch.Tensor) or isinstance(pic, np.ndarray)):
-        raise TypeError('pic should be Tensor or ndarray. Got {}.'.format(type(pic)))
+    if not (isinstance(pic, torch.Tensor) or isinstance(pic, np.ndarray)):
+        raise TypeError(
+            'pic should be Tensor or ndarray. Got {}.'.format(type(pic)))
 
     elif isinstance(pic, torch.Tensor):
         if pic.ndimension() not in {2, 3}:
-            raise ValueError('pic should be 2/3 dimensional. Got {} dimensions.'.format(pic.ndimension()))
+            raise ValueError(
+                'pic should be 2/3 dimensional. Got {} dimensions.'.format(pic.ndimension()))
 
         elif pic.ndimension() == 2:
             # if 2D image, add channel dimension (CHW)
@@ -124,7 +129,8 @@ def to_pil_image(pic, mode=None):
 
     elif isinstance(pic, np.ndarray):
         if pic.ndim not in {2, 3}:
-            raise ValueError('pic should be 2/3 dimensional. Got {} dimensions.'.format(pic.ndim))
+            raise ValueError(
+                'pic should be 2/3 dimensional. Got {} dimensions.'.format(pic.ndim))
 
         elif pic.ndim == 2:
             # if 2D image, add channel dimension (HWC)
@@ -160,7 +166,8 @@ def to_pil_image(pic, mode=None):
     elif npimg.shape[2] == 2:
         permitted_2_channel_modes = ['LA']
         if mode is not None and mode not in permitted_2_channel_modes:
-            raise ValueError("Only modes {} are supported for 2D inputs".format(permitted_2_channel_modes))
+            raise ValueError("Only modes {} are supported for 2D inputs".format(
+                permitted_2_channel_modes))
 
         if mode is None and npimg.dtype == np.uint8:
             mode = 'LA'
@@ -168,14 +175,16 @@ def to_pil_image(pic, mode=None):
     elif npimg.shape[2] == 4:
         permitted_4_channel_modes = ['RGBA', 'CMYK', 'RGBX']
         if mode is not None and mode not in permitted_4_channel_modes:
-            raise ValueError("Only modes {} are supported for 4D inputs".format(permitted_4_channel_modes))
+            raise ValueError("Only modes {} are supported for 4D inputs".format(
+                permitted_4_channel_modes))
 
         if mode is None and npimg.dtype == np.uint8:
             mode = 'RGBA'
     else:
         permitted_3_channel_modes = ['RGB', 'YCbCr', 'HSV']
         if mode is not None and mode not in permitted_3_channel_modes:
-            raise ValueError("Only modes {} are supported for 3D inputs".format(permitted_3_channel_modes))
+            raise ValueError("Only modes {} are supported for 3D inputs".format(
+                permitted_3_channel_modes))
         if mode is None and npimg.dtype == np.uint8:
             mode = 'RGB'
 
@@ -329,7 +338,8 @@ def pad(img, padding, fill=0, padding_mode='constant'):
         if img.mode == 'P':
             palette = img.getpalette()
             img = np.asarray(img)
-            img = np.pad(img, ((pad_top, pad_bottom), (pad_left, pad_right)), padding_mode)
+            img = np.pad(img, ((pad_top, pad_bottom),
+                         (pad_left, pad_right)), padding_mode)
             img = Image.fromarray(img)
             img.putpalette(palette)
             return img
@@ -337,10 +347,12 @@ def pad(img, padding, fill=0, padding_mode='constant'):
         img = np.asarray(img)
         # RGB image
         if len(img.shape) == 3:
-            img = np.pad(img, ((pad_top, pad_bottom), (pad_left, pad_right), (0, 0)), padding_mode)
+            img = np.pad(img, ((pad_top, pad_bottom),
+                         (pad_left, pad_right), (0, 0)), padding_mode)
         # Grayscale image
         if len(img.shape) == 2:
-            img = np.pad(img, ((pad_top, pad_bottom), (pad_left, pad_right)), padding_mode)
+            img = np.pad(img, ((pad_top, pad_bottom),
+                         (pad_left, pad_right)), padding_mode)
 
         return Image.fromarray(img)
 
@@ -428,8 +440,10 @@ def _get_perspective_coeffs(startpoints, endpoints):
     matrix = []
 
     for p1, p2 in zip(endpoints, startpoints):
-        matrix.append([p1[0], p1[1], 1, 0, 0, 0, -p2[0] * p1[0], -p2[0] * p1[1]])
-        matrix.append([0, 0, 0, p1[0], p1[1], 1, -p2[1] * p1[0], -p2[1] * p1[1]])
+        matrix.append([p1[0], p1[1], 1, 0, 0, 0, -
+                      p2[0] * p1[0], -p2[0] * p1[1]])
+        matrix.append([0, 0, 0, p1[0], p1[1], 1, -
+                      p2[1] * p1[0], -p2[1] * p1[1]])
 
     A = torch.tensor(matrix, dtype=torch.float)
     B = torch.tensor(startpoints, dtype=torch.float).view(8)
@@ -489,7 +503,8 @@ def five_crop(img, size):
     if isinstance(size, numbers.Number):
         size = (int(size), int(size))
     else:
-        assert len(size) == 2, "Please provide only two dimensions (h, w) for size."
+        assert len(
+            size) == 2, "Please provide only two dimensions (h, w) for size."
 
     w, h = img.size
     crop_h, crop_w = size
@@ -526,7 +541,8 @@ def ten_crop(img, size, vertical_flip=False):
     if isinstance(size, numbers.Number):
         size = (int(size), int(size))
     else:
-        assert len(size) == 2, "Please provide only two dimensions (h, w) for size."
+        assert len(
+            size) == 2, "Please provide only two dimensions (h, w) for size."
 
     first_five = five_crop(img, size)
 
@@ -624,8 +640,9 @@ def adjust_hue(img, hue_factor):
     Returns:
         PIL Image: Hue adjusted image.
     """
-    if not(-0.5 <= hue_factor <= 0.5):
-        raise ValueError('hue_factor is not in [-0.5, 0.5].'.format(hue_factor))
+    if not (-0.5 <= hue_factor <= 0.5):
+        raise ValueError(
+            'hue_factor is not in [-0.5, 0.5].'.format(hue_factor))
 
     if not _is_pil_image(img):
         raise TypeError('img should be PIL Image. Got {}'.format(type(img)))
@@ -676,7 +693,8 @@ def adjust_gamma(img, gamma, gain=1):
     img = img.convert('RGB')
 
     gamma_map = [255 * gain * pow(ele / 255., gamma) for ele in range(256)] * 3
-    img = img.point(gamma_map)  # use PIL's point-function to accelerate this part
+    # use PIL's point-function to accelerate this part
+    img = img.point(gamma_map)
 
     img = img.convert(input_mode)
     return img
@@ -728,7 +746,8 @@ def _get_inverse_affine_matrix(center, angle, translate, scale, shear):
     scale = 1.0 / scale
 
     # Inverted rotation matrix with scale and shear
-    d = math.cos(angle + shear) * math.cos(angle) + math.sin(angle + shear) * math.sin(angle)
+    d = math.cos(angle + shear) * math.cos(angle) + \
+        math.sin(angle + shear) * math.sin(angle)
     matrix = [
         math.cos(angle + shear), math.sin(angle + shear), 0,
         -math.sin(angle), math.cos(angle), 0
@@ -736,8 +755,10 @@ def _get_inverse_affine_matrix(center, angle, translate, scale, shear):
     matrix = [scale / d * m for m in matrix]
 
     # Apply inverse of translation and of center translation: RSS^-1 * C^-1 * T^-1
-    matrix[2] += matrix[0] * (-center[0] - translate[0]) + matrix[1] * (-center[1] - translate[1])
-    matrix[5] += matrix[3] * (-center[0] - translate[0]) + matrix[4] * (-center[1] - translate[1])
+    matrix[2] += matrix[0] * (-center[0] - translate[0]) + \
+        matrix[1] * (-center[1] - translate[1])
+    matrix[5] += matrix[3] * (-center[0] - translate[0]) + \
+        matrix[4] * (-center[1] - translate[1])
 
     # Apply center translation: C * RSS^-1 * C^-1 * T^-1
     matrix[2] += center[0]
@@ -771,7 +792,8 @@ def affine(img, angle, translate, scale, shear, resample=0, fillcolor=None):
     output_size = img.size
     center = (img.size[0] * 0.5 + 0.5, img.size[1] * 0.5 + 0.5)
     matrix = _get_inverse_affine_matrix(center, angle, translate, scale, shear)
-    kwargs = {"fillcolor": fillcolor} if PILLOW_VERSION[0] == '5' else {}
+    # kwargs = {"fillcolor": fillcolor} if PILLOW_VERSION[0] == '5' else {}
+    kwargs = {"fillcolor": fillcolor}
     return img.transform(output_size, Image.AFFINE, matrix, resample, **kwargs)
 
 
