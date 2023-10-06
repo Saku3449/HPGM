@@ -317,8 +317,9 @@ class LayoutTrainer(object):
         if cfg.EVAL.MODEL_EVALUATOR == '':
             print("Please load the eval model path!")
         else:
-            eval_layout_evaluator.load_state_dict(torch.load(self.model_path))
-        eval_layout_evaluator.cuda()
+            eval_layout_evaluator.load_state_dict(torch.load(
+                self.model_path, map_location=torch.device('cpu')))
+        # eval_layout_evaluator.cuda()
         eval_layout_evaluator.eval()
         num = 0
         test_index = cfg.EVAL.TEST_INDEX
@@ -337,10 +338,14 @@ class LayoutTrainer(object):
                 eval_layout1_room, eval_layout2_room = eval_pair_data[0][0], eval_pair_data[0][1]
                 eval_layout1_init_contour, eval_layout2_init_contour = eval_init_contour[0], \
                     eval_init_contour[0]
+                # eval_layout1 = torch.cat(
+                #     (eval_layout1_init_contour, eval_layout1_room), dim=1).transpose(0, 1).cuda()
                 eval_layout1 = torch.cat(
-                    (eval_layout1_init_contour, eval_layout1_room), dim=1).transpose(0, 1).cuda()
+                    (eval_layout1_init_contour, eval_layout1_room), dim=1).transpose(0, 1)
+                # eval_layout2 = torch.cat(
+                #     (eval_layout2_init_contour, eval_layout2_room), dim=1).transpose(0, 1).cuda()
                 eval_layout2 = torch.cat(
-                    (eval_layout2_init_contour, eval_layout2_room), dim=1).transpose(0, 1).cuda()
+                    (eval_layout2_init_contour, eval_layout2_room), dim=1).transpose(0, 1)
                 eval_score1 = eval_layout_evaluator.forward(eval_layout1)
                 eval_score2 = eval_layout_evaluator.forward(eval_layout2)
                 eval_score1 = tran_score_range(eval_score1)
